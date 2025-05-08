@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: init
+      id: 1
       author: AndreyTarasov
       changes:
         - createTable:
@@ -20,6 +20,12 @@ databaseChangeLog:
               - column:
                   name: quantity
                   type: int
+              - column:
+                  name: price_amount
+                  type: number
+              - column:
+                  name: price_currency
+                  type: varchar2(10)
         - createTable:
             tableName: order
             columns:
@@ -62,3 +68,17 @@ databaseChangeLog:
             columnName: id
             startWith: 1
             incrementBy: 1
+        - tagDatabase:
+            tag: v.1.0
+      rollback:
+        - dropTable:
+              tableName: order_goods
+              cascadeConstraints: true
+        - dropTable:
+            tableName: goods
+            cascadeConstraints: true
+        - dropTable:
+            tableName: order
+            cascadeConstraints: true
+
+
