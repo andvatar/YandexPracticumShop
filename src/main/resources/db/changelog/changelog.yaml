@@ -1,0 +1,64 @@
+databaseChangeLog:
+  - changeSet:
+      id: init
+      author: AndreyTarasov
+      changes:
+        - createTable:
+            tableName: goods
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: name
+                  type: varchar2(200)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: quantity
+                  type: int
+        - createTable:
+            tableName: order
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+              - column:
+                  name: status
+                  type: varchar2(50)
+        - createTable:
+            tableName: order_goods
+            columns:
+              - column:
+                  name: order_id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_order
+                    references: order(id)
+              - column:
+                  name: goods_id
+                  type: bigint
+                  constraints:
+                    primaryKey: true
+                    foreignKeyName: fk_goods
+                    references: goods(id)
+              - column:
+                  name: quantity
+                  type: int
+        - addAutoIncrement:
+            tableName: goods
+            columnName: id
+            startWith: 1
+            incrementBy: 1
+        - addAutoIncrement:
+            tableName: order
+            columnName: id
+            startWith: 1
+            incrementBy: 1
