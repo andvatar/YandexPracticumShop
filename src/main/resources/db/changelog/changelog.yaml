@@ -9,14 +9,21 @@ databaseChangeLog:
               - column:
                   name: id
                   type: bigint
+                  autoIncrement: true
                   constraints:
                     nullable: false
                     primaryKey: true
               - column:
-                  name: name
+                  name: title
                   type: varchar2(200)
                   constraints:
                     nullable: false
+              - column:
+                  name: description
+                  type: varchar2(2000)
+              - column:
+                  name: img_path
+                  type: varchar2(200)
               - column:
                   name: quantity
                   type: int
@@ -27,11 +34,12 @@ databaseChangeLog:
                   name: price_currency
                   type: varchar2(10)
         - createTable:
-            tableName: order
+            tableName: orders
             columns:
               - column:
                   name: id
                   type: bigint
+                  autoIncrement: true
                   constraints:
                     nullable: false
                     primaryKey: true
@@ -47,7 +55,7 @@ databaseChangeLog:
                   constraints:
                     primaryKey: true
                     foreignKeyName: fk_order
-                    references: order(id)
+                    references: orders(id)
               - column:
                   name: goods_id
                   type: bigint
@@ -58,16 +66,6 @@ databaseChangeLog:
               - column:
                   name: quantity
                   type: int
-        - addAutoIncrement:
-            tableName: goods
-            columnName: id
-            startWith: 1
-            incrementBy: 1
-        - addAutoIncrement:
-            tableName: order
-            columnName: id
-            startWith: 1
-            incrementBy: 1
         - tagDatabase:
             tag: v.1.0
       rollback:
@@ -78,7 +76,7 @@ databaseChangeLog:
             tableName: goods
             cascadeConstraints: true
         - dropTable:
-            tableName: order
+            tableName: orders
             cascadeConstraints: true
 
 

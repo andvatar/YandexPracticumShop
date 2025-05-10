@@ -7,25 +7,32 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 @Entity
-@Table(name = "order")
+@Table(name = "orders")
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
 @Setter
 public class Order {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id", unique=true)
     private long id;
 
     @Column(name = "status")
+    @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
-    private List<OrderGoods> goods;
+    private List<OrderGoods> goods = new ArrayList<>();
+
+    public Order(OrderStatus status) {
+        this.status = status;
+    }
 
     @Override
     public boolean equals(Object o) {
