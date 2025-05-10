@@ -1,5 +1,8 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
 import lombok.*;
@@ -15,24 +18,31 @@ import java.util.Objects;
 @AllArgsConstructor
 @Getter
 @Setter
+//@JsonIgnoreProperties(ignoreUnknown = true)
 public class Goods {
     @Id
     @Column(name = "id", nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    //@JsonIgnore
     private long id;
 
+    @JsonProperty("title")
     @Column(name = "title", nullable = false)
     private String title;
 
+    @JsonProperty("description")
     @Column(name = "description")
     private String description;
 
+    @JsonProperty("img_path")
     @Column(name = "img_path")
     private String imgPath;
 
+    @JsonProperty("quantity")
     @Column(name = "quantity")
     private int quantity;
 
+    @JsonProperty("price_amount")
     @Column(name = "price_amount")
     private Double price;
 

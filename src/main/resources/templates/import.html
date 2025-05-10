@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <title>Витрина товаров</title>
+</head>
+
+<body>
+<form action="/import" method="post" enctype="multipart/form-data">
+    <table style="width:50%;margin-left:auto;margin-right:auto;">
+        <tr>
+            <td>
+                <h3>Файл</h3>
+                <input type="file" name="file">
+            </td>
+        </tr>
+        <tr>
+            <td>
+                <button>Добавить</button>
+            </td>
+        </tr>
+    </table>
+</form>
+</body>

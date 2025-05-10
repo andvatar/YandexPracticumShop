@@ -7,9 +7,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
+import java.io.IOException;
 import java.util.Optional;
 
 @Controller
@@ -55,5 +57,16 @@ public class GoodsController {
         Goods goods = goodsService.findById(id);
         model.addAttribute("item", goods);
         return "item";
+    }
+
+    @RequestMapping("/import")
+    public String importPage() {
+        return "import";
+    }
+
+    @PostMapping("/import")
+    public String importGoods(@RequestParam("file") MultipartFile file) throws IOException {
+        goodsService.importGoods(file);
+        return "redirect:/main/items";
     }
 }

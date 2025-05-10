@@ -1,15 +1,21 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 
+import com.fasterxml.jackson.databind.MappingIterator;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.*;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 
+import java.io.IOException;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -67,6 +73,20 @@ public class GoodsService {
             default:
                 throw new NoSuchElementException("Unknown action: " + action);
         }
+    }
+
+    public void importGoods(MultipartFile file) throws IOException {
+        CsvMapper mapper = new CsvMapper();
+        CsvSchema schema = CsvSchema.emptySchema().withHeader();
+
+        MappingIterator<Goods> goodsIt = mapper
+                .readerFor(Goods.class)
+                .with(schema)
+                .readValues(file.getInputStream());
+
+        List<Goods> goodsList = goodsIt.readAll();
+
+        goodsRepository.saveAll(goodsList);
     }
 
     private void addGoods(Goods goods, Order cart) {
