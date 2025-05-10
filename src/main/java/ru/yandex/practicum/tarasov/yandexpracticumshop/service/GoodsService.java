@@ -33,6 +33,10 @@ public class GoodsService {
         return goodsRepository.findAllByQuantityGreaterThan(0, pageable);
     }
 
+    public Goods findById(long id) {
+        return goodsRepository.findById(id).orElseThrow(() -> new NoSuchElementException("No goods found with id: " + id));
+    }
+
     @Transactional
     public void addRemoveToCart(long goodsId, String action) {
 
@@ -40,7 +44,7 @@ public class GoodsService {
 
         long orderId = cart.getId();
 
-        Goods goods = goodsRepository.findById(goodsId).orElseThrow(() -> new NoSuchElementException("Goods not found"));
+        Goods goods = findById(goodsId);
         int goodsQuantity = goods.getQuantity();
 
         Optional<OrderGoods> orderGoodsOptional = orderGoodsRepository.findByIdOrderIdAndIdGoodsId(orderId, goodsId);

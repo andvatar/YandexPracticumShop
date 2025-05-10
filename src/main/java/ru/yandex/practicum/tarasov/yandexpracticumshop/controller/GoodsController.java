@@ -48,4 +48,12 @@ public class GoodsController {
         goodsService.addRemoveToCart(goodsId, action);
         return "redirect:/cart/items";
     }
+
+    @RequestMapping("/items/{id}")
+    public String getGoods( Model model,
+                            @PathVariable("id") long id) {
+        Goods goods = goodsService.findById(id);
+        model.addAttribute("item", goods);
+        return "item";
+    }
 }

@@ -10,6 +10,7 @@ import org.apache.commons.lang3.builder.ToStringBuilder;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Entity
 @Table(name = "orders")
@@ -32,6 +33,17 @@ public class Order {
 
     public Order(OrderStatus status) {
         this.status = status;
+    }
+
+    public List<Goods> items() {
+        return goods.stream().map(OrderGoods::getGoods).collect(Collectors.toList());
+    }
+
+    public double totalSum() {
+        return getGoods()
+                .stream()
+                .map(g -> g.getGoods().getPrice() * g.getQuantity())
+                .reduce(0.0, Double::sum);
     }
 
     @Override
