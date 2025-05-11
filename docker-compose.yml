@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: yandex-shop-app
+    restart: always
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./yandexShopApp/images:/yandexShopApp/images
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://yandex_shop_db:5432/yandex_shop
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+    depends_on:
+      - db
+  db:
+    image: postgres
+    volumes:
+      - ./data/db:/var/lib/postgresql/data
+    ports:
+      - "5434:5432"
+    container_name: yandex_shop_db
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=yandex_shop

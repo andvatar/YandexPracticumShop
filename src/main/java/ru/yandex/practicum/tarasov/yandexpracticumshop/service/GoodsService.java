@@ -15,7 +15,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepositor
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
@@ -34,9 +33,14 @@ public class GoodsService {
         this.orderService = orderService;
     }
 
-    public Page<Goods> findAll(int page, int size, String sortBy, String order) {
+    public Page<Goods> findAll(String search, int page, int size, String sortBy, String order) {
         Pageable pageable = PageRequest.of(page, size, Objects.equals(sortBy, "no") ? Sort.unsorted() : Sort.by(Sort.Direction.fromString(order), sortBy));
-        return goodsRepository.findAllByQuantityGreaterThan(0, pageable);
+        if(search == null || search.isEmpty()) {
+            return goodsRepository.findAllByQuantityGreaterThan(0, pageable);
+        }
+        else{
+            return goodsRepository.findAllByTitleOrDescription(search, search, pageable);
+        }
     }
 
     public Goods findById(long id) {
@@ -57,15 +61,12 @@ public class GoodsService {
 
         switch (action) {
             case "plus":
-                if(orderGoodsOptional.isPresent()) {
-                    addRemoveGoods(orderGoodsOptional.get(), 1, goodsQuantity);
-                }
-                else {
-                    addGoods(goods, cart);
-                }
+                OrderGoods orderGoods;
+                orderGoods = orderGoodsOptional.orElseGet(() -> new OrderGoods(cart, goods, 0));
+                addRemoveGoods(orderGoods, 1, goodsQuantity);
             break;
             case "minus":
-                orderGoodsOptional.ifPresent(orderGoods -> addRemoveGoods(orderGoods, -1, goodsQuantity));
+                orderGoodsOptional.ifPresent(og -> addRemoveGoods(og, -1, goodsQuantity));
             break;
             case "delete":
                 orderGoodsOptional.ifPresent(orderGoodsRepository::delete);
@@ -75,6 +76,7 @@ public class GoodsService {
         }
     }
 
+    @Transactional
     public void importGoods(MultipartFile file) throws IOException {
         CsvMapper mapper = new CsvMapper();
         CsvSchema schema = CsvSchema.emptySchema().withHeader();
@@ -84,14 +86,23 @@ public class GoodsService {
                 .with(schema)
                 .readValues(file.getInputStream());
 
-        List<Goods> goodsList = goodsIt.readAll();
 
-        goodsRepository.saveAll(goodsList);
-    }
-
-    private void addGoods(Goods goods, Order cart) {
-        OrderGoods orderGoods = new OrderGoods(cart, goods, 1);
-        orderGoodsRepository.save(orderGoods);
+        //for(Goods goods : goodsIt.readAll()) {
+        while (goodsIt.hasNext()) {
+            Goods goods = goodsIt.next();
+            Optional<Goods> optionalGoods = goodsRepository.findByTitle(goods.getTitle());
+            if(optionalGoods.isPresent()) {
+                var existingGoods = optionalGoods.get();
+                existingGoods.setDescription(goods.getDescription());
+                existingGoods.setPrice(goods.getPrice());
+                existingGoods.setQuantity(goods.getQuantity());
+                existingGoods.setImgPath(goods.getImgPath());
+                goodsRepository.save(existingGoods);
+            }
+            else {
+                goodsRepository.save(goods);
+            }
+        }
     }
 
     private void addRemoveGoods(OrderGoods orderGoods, int amount, int goodsQuantity) {
