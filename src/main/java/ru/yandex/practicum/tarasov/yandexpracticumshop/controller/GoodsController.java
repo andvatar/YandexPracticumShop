@@ -31,8 +31,9 @@ public class GoodsController {
     public String getAllGoods(Model model,
                               @RequestParam("pageNumber") Optional<Integer> page,
                               @RequestParam("pageSize") Optional<Integer> size,
-                              @RequestParam("sort") Optional<String> sort) {
-        Page<Goods> goods = goodsService.findAll(page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC");
+                              @RequestParam("sort") Optional<String> sort,
+                              @RequestParam(value = "search", required = false) String search) {
+        Page<Goods> goods = goodsService.findAll(search, page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC");
         model.addAttribute("paging", goods);
         return "main";
     }

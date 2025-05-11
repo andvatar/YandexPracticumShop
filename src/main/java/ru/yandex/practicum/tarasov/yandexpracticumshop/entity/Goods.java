@@ -1,7 +1,5 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import jakarta.persistence.Table;
