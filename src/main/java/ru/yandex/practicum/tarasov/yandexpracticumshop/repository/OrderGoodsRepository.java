@@ -1,15 +1,15 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.repository;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
+import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
 
-import java.util.Optional;
 
 @Repository
-public interface OrderGoodsRepository extends JpaRepository<OrderGoods, Long> {
+public interface OrderGoodsRepository extends ReactiveCrudRepository<OrderGoods, Long> {
 
-    Optional<OrderGoods> findByIdOrderIdAndIdGoodsId(Long orderId, Long goodsId);
+    Mono<OrderGoods> findByIdOrderIdAndIdGoodsId(Long orderId, Long goodsId);
 
 
 }

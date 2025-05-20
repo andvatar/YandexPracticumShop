@@ -41,7 +41,6 @@ public class GoodsServiceTest {
 
     private Order order;
     private Goods goods;
-    //private OrderGoods orderGoods;
 
     @BeforeEach
     public void init() {
