@@ -48,44 +48,43 @@ public class GoodsService {
     }
 
     public Mono<Goods> findById(long id) {
-        return goodsRepository.findById(id)//.orElseThrow(() -> new NoSuchElementException("No goods found with id: " + id));
+        return goodsRepository.findById(id)
                 .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id)));
-
-                //.orElseThrow(() -> new NoSuchElementException("No goods found with id: " + id));
     }
 
     @Transactional
     public Mono<Void> addRemoveToCart(long goodsId, String action) {
 
-        Order cart = orderService.getCart();
+        return orderService.getCart()
+                .flatMap(cart -> {
+                    long orderId = cart.getId();
+                    return findById(goodsId)
+                            .flatMap(goods -> {
+                                        int goodsQuantity = goods.getQuantity();
 
-        long orderId = cart.getId();
-
-        return findById(goodsId)
-                .flatMap( goods -> {
-                            int goodsQuantity = goods.getQuantity();
-
-                            return orderGoodsRepository.findByIdOrderIdAndIdGoodsId(orderId, goodsId)
-                                    .switchIfEmpty(Mono.defer(() -> {
-                                        if(action.equals("plus")) {
-                                            return Mono.just(new OrderGoods(cart, goods, 0));
-                                        }
-                                        else {
-                                            return Mono.error(new NoSuchElementException("No goods found with id: " + goodsId));
-                                        }
-                                    }))
-                                    .flatMap(
-                                            orderGoods ->
-                                                switch (action) {
-                                                    case "plus" -> addRemoveGoods(orderGoods, 1, goodsQuantity);
-                                                    case "minus" -> addRemoveGoods(orderGoods, -1, goodsQuantity);
-                                                    case "delete" -> orderGoodsRepository.delete(orderGoods).then();
-                                                    default -> Mono.error(new NoSuchElementException("Unknown action: " + action));
-
-                                            }
-                                        );
-                        }
-                );
+                                        return orderGoodsRepository.findByIdOrderIdAndIdGoodsId(orderId, goodsId)
+                                                .switchIfEmpty(Mono.defer(() -> {
+                                                    if (action.equals("plus")) {
+                                                        return Mono.just(new OrderGoods(cart, goods, 0));
+                                                    } else {
+                                                        return Mono.error(new NoSuchElementException("No goods found with id: " + goodsId));
+                                                    }
+                                                }))
+                                                .flatMap(
+                                                        orderGoods ->
+                                                                switch (action) {
+                                                                    case "plus" -> addRemoveGoods(orderGoods, 1, goodsQuantity);
+                                                                    case "minus" ->
+                                                                            addRemoveGoods(orderGoods, -1, goodsQuantity);
+                                                                    case "delete" ->
+                                                                            orderGoodsRepository.delete(orderGoods).then();
+                                                                    default ->
+                                                                            Mono.error(new NoSuchElementException("Unknown action: " + action));
+                                                                }
+                                                );
+                                    }
+                            );
+                });
     }
 
     @Transactional

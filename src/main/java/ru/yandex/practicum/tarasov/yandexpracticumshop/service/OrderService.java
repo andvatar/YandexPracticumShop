@@ -1,7 +1,9 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 
-import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
@@ -22,33 +24,38 @@ public class OrderService {
         this.goodsRepository = goodsRepository;
     }
 
-    public Order getOrder(long id) {
-        return orderRepository.findById(id).orElseThrow(() -> new NoSuchElementException("Order not found"));
+    public Mono<Order> getOrder(long id) {
+        return orderRepository.findById(id)
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No order found with id: " + id)));
     }
 
-    public Order getCart() {
-        return orderRepository.findByStatus(OrderStatus.NEW).orElseGet(() -> orderRepository.save(new Order(OrderStatus.NEW)));
+    public Mono<Order> getCart() {
+        return orderRepository.findByStatus(OrderStatus.NEW)
+                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))));
     }
 
-    public List<Order> getOrders() {
+    public Flux<Order> getOrders() {
         return orderRepository.findByStatusNot(OrderStatus.NEW);
     }
 
     @Transactional
-    public long buyCart() {
-        Order order = getCart();
-        if (order.getGoods().isEmpty()) {
-            throw new NoSuchElementException("Cart is empty");
-        }
-        for(Goods goods:order.items()) {
-            int newQuantity = goods.getQuantity() - goods.getCount();
-            if(newQuantity < 0) {
-                throw new NoSuchElementException("Not enough goods in store: " + goods.getTitle());
-            }
-            goods.setQuantity(newQuantity);
-            goodsRepository.save(goods);
-        }
-        order.setStatus(OrderStatus.IN_PROGRESS);
-        return orderRepository.save(order).getId();
+    public Mono<Long> buyCart() {
+        return getCart()
+                .switchIfEmpty(Mono.error(new NoSuchElementException("Cart is empty")))
+                .flatMap(order -> Flux.fromIterable(order.items())
+                        .flatMap(goods -> {
+                                    int newQuantity = goods.getQuantity() - goods.getCount();
+                                    if (newQuantity < 0) {
+                                        return Mono.error(new NoSuchElementException("Not enough goods in store: " + goods.getTitle()));
+                                    }
+                                    goods.setQuantity(newQuantity);
+                                    return goodsRepository.save(goods);
+                                }
+                            )
+                            .then(Mono.defer(() -> {
+                                order.setStatus(OrderStatus.IN_PROGRESS);
+                                return orderRepository.save(order);
+                            })))
+                .map(Order::getId);
     }
 }

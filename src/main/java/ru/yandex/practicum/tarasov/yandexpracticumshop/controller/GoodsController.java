@@ -33,9 +33,9 @@ public class GoodsController {
                               @RequestParam("sort") Optional<String> sort,
                               @RequestParam(value = "search", required = false) String search) {
         return goodsService.findAll(search, page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC")
-                        .flatMap(goods -> {
+                        .map(goods -> {
                             model.addAttribute("paging", goods);
-                            return Mono.just("main");
+                            return "main";
                         }
         );
     }
@@ -57,9 +57,9 @@ public class GoodsController {
     @RequestMapping("/items/{id}")
     public Mono<String> getGoods( Model model,
                             @PathVariable("id") long id) {
-        return goodsService.findById(id).flatMap(goods -> {
+        return goodsService.findById(id).map(goods -> {
             model.addAttribute("item", goods);
-            return Mono.just("item");
+            return "item";
         });
     }
 

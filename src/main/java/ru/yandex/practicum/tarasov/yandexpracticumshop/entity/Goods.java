@@ -2,7 +2,6 @@ package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
-import jakarta.persistence.Table;
 import lombok.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 
@@ -16,12 +15,10 @@ import java.util.Objects;
 @AllArgsConstructor
 @Getter
 @Setter
-//@JsonIgnoreProperties(ignoreUnknown = true)
 public class Goods {
     @Id
     @Column(name = "id", nullable = false, unique = true)
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    //@JsonIgnore
     private long id;
 
     @JsonProperty("title")
