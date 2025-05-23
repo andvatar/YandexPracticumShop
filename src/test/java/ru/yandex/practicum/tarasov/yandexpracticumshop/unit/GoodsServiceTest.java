@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
@@ -17,7 +19,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -61,25 +62,39 @@ public class GoodsServiceTest {
     @Test
     public void addToCartWhenOnGoodsAvailable() {
         goods.setQuantity(0);
-        when(orderService.getCart()).thenReturn(order);
-        when(goodsRepository.findById(1L)).thenReturn(Optional.of(goods));
-        when(orderGoodsRepository.findByIdOrderIdAndIdGoodsId(1L, 1L)).thenReturn(Optional.empty());
+        when(orderService.getCart()).thenReturn(Mono.just(order));
+        when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
+        when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.empty());
 
-        Exception exception = assertThrows(NoSuchElementException.class, () -> goodsService.addRemoveToCart(1L, "plus"));
+        //Exception exception = assertThrows(NoSuchElementException.class, () -> goodsService.addRemoveToCart(1L, "plus"));
 
-        String expectedMessage = "Not enough goods in store";
-        String actualMessage = exception.getMessage();
+        StepVerifier
+                .create(goodsService.addRemoveToCart(1L, "plus"))
+                .expectErrorMatches(throwable ->
+                    throwable instanceof NoSuchElementException && throwable.getMessage().equals("Not enough goods in store")
+                )
+                .verify();
+                //.expectErrorMessage("")
+                //.expectError(NoSuchElementException.class)
 
-        assertTrue(actualMessage.contains(expectedMessage));
+
+        //String expectedMessage = "Not enough goods in store";
+        //String actualMessage = exception.getMessage();
+
+        //assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
     public void addToCart() {
-        when(orderService.getCart()).thenReturn(order);
-        when(goodsRepository.findById(1L)).thenReturn(Optional.of(goods));
-        when(orderGoodsRepository.findByIdOrderIdAndIdGoodsId(1L, 1L)).thenReturn(Optional.empty());
+        when(orderService.getCart()).thenReturn(Mono.just(order));
+        when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
+        when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.empty());
 
-        goodsService.addRemoveToCart(1L, "plus");
+
+
+        StepVerifier
+                .create(goodsService.addRemoveToCart(1L, "plus"))
+                .verifyComplete();
 
         verify(orderGoodsRepository, times(1)).save(any(OrderGoods.class));
     }
@@ -91,11 +106,13 @@ public class GoodsServiceTest {
         order.getGoods().add(orderGoods);
         goods.getOrderGoods().add(orderGoods);
 
-        when(orderService.getCart()).thenReturn(order);
-        when(goodsRepository.findById(1L)).thenReturn(Optional.of(goods));
-        when(orderGoodsRepository.findByIdOrderIdAndIdGoodsId(1L, 1L)).thenReturn(Optional.of(orderGoods));
+        when(orderService.getCart()).thenReturn(Mono.just(order));
+        when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
+        when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.just(orderGoods));
 
-        goodsService.addRemoveToCart(1L, "minus");
+        StepVerifier
+                .create(goodsService.addRemoveToCart(1L, "minus"))
+                .verifyComplete();
 
         verify(orderGoodsRepository, times(1)).save(any(OrderGoods.class));
         assertEquals(4, orderGoods.getQuantity());
@@ -108,11 +125,13 @@ public class GoodsServiceTest {
         order.getGoods().add(orderGoods);
         goods.getOrderGoods().add(orderGoods);
 
-        when(orderService.getCart()).thenReturn(order);
-        when(goodsRepository.findById(1L)).thenReturn(Optional.of(goods));
-        when(orderGoodsRepository.findByIdOrderIdAndIdGoodsId(1L, 1L)).thenReturn(Optional.of(orderGoods));
+        when(orderService.getCart()).thenReturn(Mono.just(order));
+        when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
+        when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.just(orderGoods));
 
-        goodsService.addRemoveToCart(1L, "minus");
+        StepVerifier
+                .create(goodsService.addRemoveToCart(1L, "minus"))
+                .verifyComplete();
 
         verify(orderGoodsRepository, times(1)).delete(any(OrderGoods.class));
     }

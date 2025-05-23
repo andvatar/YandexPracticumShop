@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import reactor.core.publisher.Mono;
+import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
@@ -16,7 +18,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepositor
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -64,43 +65,58 @@ public class OrderServiceTest {
 
         order.getGoods().clear();
 
-        when(orderRepository.findByStatus(OrderStatus.NEW)).thenReturn(Optional.of(order));
+        when(orderRepository.findCart()).thenReturn(Mono.just(order));
 
-        Exception exception = assertThrows(NoSuchElementException.class, () -> orderService.buyCart());
+        //Exception exception = assertThrows(NoSuchElementException.class, () -> );
+
+        StepVerifier
+                .create(orderService.buyCart())
+                .expectErrorMatches(throwable ->
+                        throwable instanceof NoSuchElementException && throwable.getMessage().equals("The cart is empty"))
+                .verify();
 
         verify(goodsRepository, times(0)).save(any(Goods.class));
         verify(orderRepository, times(0)).save(any(Order.class));
 
-        String expectedMessage = "Cart is empty";
+        /*String expectedMessage = "Cart is empty";
         String actualMessage = exception.getMessage();
 
-        assertTrue(actualMessage.contains(expectedMessage));
+        assertTrue(actualMessage.contains(expectedMessage));*/
     }
 
     @Test
     public void buyMoreGoodsThanWeHave() {
         orderGoods.setQuantity(15);
 
-        when(orderRepository.findByStatus(OrderStatus.NEW)).thenReturn(Optional.of(order));
+        when(orderRepository.findCart()).thenReturn(Mono.just(order));
 
-        Exception exception = assertThrows(NoSuchElementException.class, () -> orderService.buyCart());
+        //Exception exception = assertThrows(NoSuchElementException.class, () -> orderService.buyCart());
+
+        StepVerifier
+                .create(orderService.buyCart())
+                .expectErrorMatches(throwable ->
+                        throwable instanceof NoSuchElementException && throwable.getMessage().equals("Not enough goods in the store: Test"))
+                .verify();
 
         verify(goodsRepository, times(0)).save(any(Goods.class));
         verify(orderRepository, times(0)).save(any(Order.class));
 
-        String expectedMessage = "Not enough goods in store: Test";
+        /*String expectedMessage = "Not enough goods in the store: Test";
         String actualMessage = exception.getMessage();
 
-        assertTrue(actualMessage.contains(expectedMessage));
+        assertTrue(actualMessage.contains(expectedMessage));*/
     }
 
     @Test
     public void buyCart() {
-        when(orderRepository.findByStatus(OrderStatus.NEW)).thenReturn(Optional.of(order));
+        when(orderRepository.findCart()).thenReturn(Mono.just(order));
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArguments()[0]);
         when(goodsRepository.save(any(Goods.class))).thenAnswer(i -> i.getArguments()[0]);
 
-        orderService.buyCart();
+        StepVerifier
+                .create(orderService.buyCart())
+                .verifyComplete();
+        //orderService.buyCart();
 
         verify(goodsRepository, times(1)).save(any(Goods.class));
         verify(orderRepository, times(1)).save(any(Order.class));

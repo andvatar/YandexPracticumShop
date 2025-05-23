@@ -1,18 +1,20 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-@Entity
 @Table(name = "orders")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,15 +22,13 @@ import java.util.stream.Collectors;
 @Setter
 public class Order {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id", unique=true)
+    @Column("id")
     private long id;
 
-    @Column(name = "status")
-    @Enumerated(EnumType.STRING)
+    @Column("status")
     private OrderStatus status;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "order")
+    @Transient
     private List<OrderGoods> goods = new ArrayList<>();
 
     public Order(OrderStatus status) {
@@ -37,13 +37,6 @@ public class Order {
 
     public List<Goods> items() {
         return goods.stream().map(OrderGoods::getGoods).collect(Collectors.toList());
-    }
-
-    public double totalSum() {
-        return getGoods()
-                .stream()
-                .map(g -> g.getGoods().getPrice() * g.getQuantity())
-                .reduce(0.0, Double::sum);
     }
 
     @Override

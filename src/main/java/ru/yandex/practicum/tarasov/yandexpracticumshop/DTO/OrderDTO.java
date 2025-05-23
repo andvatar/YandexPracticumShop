@@ -1,0 +1,25 @@
+package ru.yandex.practicum.tarasov.yandexpracticumshop.DTO;
+
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
+
+import java.util.List;
+
+public record OrderDTO(
+        @Id
+        @Column("id")
+        long id,
+        @Column("status")
+        OrderStatus status,
+
+        List<ItemDTO> items
+) {
+        public double totalSum() {
+                return items()
+                        .stream()
+                        .map(item -> item.price() * item.count())
+                        .reduce(0.0, Double::sum);
+        }
+}

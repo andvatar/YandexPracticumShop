@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
+import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.YandexPracticumShopApplication;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
@@ -27,12 +28,32 @@ public class ImportTest {
                 ImportTwo,ImportTwo,3.png,50,100000""";
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.csv", "text/csv", csv.getBytes());
 
-        goodsService.importGoods(mockMultipartFile);
-        assertEquals(3, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
+        StepVerifier
+                .create(goodsService.importGoods(mockMultipartFile))
+                .expectComplete()
+                .verify();
+        //goodsService.importGoods(mockMultipartFile);
+
+        StepVerifier
+                .create(goodsService.findAll("", 0, 100, "no", "asc"))
+                .expectNextCount(3)
+                .verifyComplete();
+
+
+        //assertEquals(3, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
 
         // nothing should be changed if we import the same file second time
-        goodsService.importGoods(mockMultipartFile);
-        assertEquals(3, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
+        StepVerifier
+                .create(goodsService.importGoods(mockMultipartFile))
+                .verifyComplete();
+        //goodsService.importGoods(mockMultipartFile);
+
+        StepVerifier
+                .create(goodsService.findAll("", 0, 100, "no", "asc"))
+                .assertNext(goodsPage -> assertEquals(3, goodsPage.getTotalElements()))
+                .verifyComplete();
+        //goodsService.importGoods(mockMultipartFile);
+        //assertEquals(3, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
     }
 
     @Test
@@ -40,7 +61,17 @@ public class ImportTest {
         String csv = "title,description,img_path,quantity,price_amount";
         MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.csv", "text/csv", csv.getBytes());
 
-        goodsService.importGoods(mockMultipartFile);
-        assertEquals(1, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
+        //goodsService.importGoods(mockMultipartFile);
+        //assertEquals(1, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
+        StepVerifier
+                .create(goodsService.importGoods(mockMultipartFile))
+                .expectComplete()
+                .verify();
+        //goodsService.importGoods(mockMultipartFile);
+
+        StepVerifier
+                .create(goodsService.findAll("", 0, 100, "no", "asc"))
+                .assertNext(goodsPage -> assertEquals(1, goodsPage.getTotalElements()))
+                .verifyComplete();
     }
 }

@@ -5,10 +5,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.reactive.result.view.Rendering;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 
 @Controller
@@ -22,18 +20,18 @@ public class OrderController {
 
     @RequestMapping("/cart/items")
     public Mono<String> getCart(Model model) {
-        return orderService.getCart()
+        return orderService.getCartDTO()
                         .map(order -> {
                             model.addAttribute("items", order.items());
                             model.addAttribute("total", order.totalSum());
-                            model.addAttribute("empty", order.getGoods().isEmpty());
+                            model.addAttribute("empty", order.items().isEmpty());
                             return "cart";
                         });
     }
 
     @RequestMapping("/orders")
     public Flux<String> getOrders(Model model) {
-        return orderService.getOrders()
+        return orderService.getOrdersDTO()
                         .map(orders -> {
                             model.addAttribute("orders", orders);
                             return "orders";
@@ -52,7 +50,7 @@ public class OrderController {
     public Mono<String> getOrder(Model model,
                                     @PathVariable("id") int orderId) {
 
-        return orderService.getOrder(orderId)
+        return orderService.getOrderDTO(orderId)
                 .map(order -> {
                     model.addAttribute("order", order);
                     return "order";}

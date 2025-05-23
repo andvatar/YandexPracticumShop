@@ -1,6 +1,5 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.utils;
 
-import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,9 +13,9 @@ public class ExceptionHandlerAdvice {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionHandlerAdvice.class);
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleException(Exception ex, HttpServletRequest request) {
+    public ResponseEntity<Object> handleException(Exception ex) {
 
-        LOGGER.error("Exception occurred: {}, Request Details: {}", ex.getMessage(), request.getRequestURI(), ex);
+        LOGGER.error("Exception occurred: {}", ex.getMessage(), ex);
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)

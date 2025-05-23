@@ -78,5 +78,24 @@ databaseChangeLog:
         - dropTable:
             tableName: orders
             cascadeConstraints: true
+  - changeSet:
+      id: 2
+      author: Andrey Tarasov
+      changes:
+        - dropPrimaryKey:
+            tableName: order_goods
+            constraintName: order_goods_pkey
+        - addColumn:
+            tableName: order_goods
+            columns:
+              - column:
+                  name: id
+                  type: bigint
+                  autoIncrement: true
+                  constraints:
+                    nullable: false
+                    primaryKey: true
+
+
 
 

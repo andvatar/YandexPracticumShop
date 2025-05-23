@@ -2,7 +2,7 @@
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
 
 <head>
-    <title>Витрина товаров</title>
+    <meta charset="UTF-8"> <title>Витрина товаров</title>
 </head>
 
 <body>
@@ -52,29 +52,29 @@
                 <table>
                     <tr>
                         <td>
-                            <a th:href="${'/items/'+item.getId()}">
-                                <img width="300" height="300" th:src="${'/images/'+item.getImgPath()}">
+                            <a th:href="${'/items/'+item.id()}">
+                                <img width="300" height="300" th:src="${'/images/'+item.imgPath()}">
                             </a>
                         </td>
                     </tr>
                     <tr>
                         <td>
-                            <b th:text="${item.getTitle()}"></b>
+                            <b th:text="${item.title()}"></b>
                         </td>
                         <td>
-                            <b th:text="${item.getPrice()}+' руб.'"></b>
+                            <b th:text="${item.price()}+' руб.'"></b>
                         </td>
                     </tr>
                     <tr>
-                        <td th:text="${item.getDescription()}"></td>
+                        <td th:text="${item.description()}"></td>
                     </tr>
                     <tr>
                         <td>
-                            <form th:action="${'/main/items/'+item.getId()}" method="post">
+                            <form th:action="${'/main/items/'+item.id()}" method="post">
                                 <button name="action" value="minus">-</button>
-                                <span th:text="${item.getCount()}"></span>
+                                <span th:text="${item.count()}"></span>
                                 <button name="action" value="plus">+</button>
-                                <button name="action" value="plus" th:if="${item.getCount()==0}" style="float:right;">В корзину</button>
+                                <button name="action" value="plus" th:if="${item.count()==0}" style="float:right;">В корзину</button>
                             </form>
                         </td>
                     </tr>

@@ -42,7 +42,7 @@ public class GoodsController {
 
     @PostMapping("/main/items/{id}")
     public Mono<String> addRemoveGoods(@PathVariable("id") int goodsId,
-                                 @RequestParam("action") String action) {
+                                 @RequestParam(value = "action", required = false) String action) {
         return goodsService.addRemoveToCart(goodsId, action).thenReturn("redirect:/main/items");
         //return "redirect:/main/items";
     }
@@ -57,7 +57,7 @@ public class GoodsController {
     @RequestMapping("/items/{id}")
     public Mono<String> getGoods( Model model,
                             @PathVariable("id") long id) {
-        return goodsService.findById(id).map(goods -> {
+        return goodsService.findDTOById(id).map(goods -> {
             model.addAttribute("item", goods);
             return "item";
         });

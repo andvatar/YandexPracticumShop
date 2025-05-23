@@ -1,28 +1,36 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
-import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
 
-@Entity
+
 @Table(name = "order_goods")
 @NoArgsConstructor
 @Getter
 @Setter
 public class OrderGoods {
-    @EmbeddedId
-    private OrderGoodsId id;
+    @Id
+    @Column("id")
+    private long id;
 
-    @ManyToOne
-    @MapsId("orderId")
+    @Column("order_id")
+    private long orderId;
+
+    @Column("goods_id")
+    private long goodsId;
+
+    @Transient
     private Order order;
 
-    @ManyToOne
-    @MapsId("goodsId")
+    @Transient
     private Goods goods;
 
-    @Column(name = "quantity")
+    @Column("quantity")
     private int quantity;
 
     public OrderGoods(Order order, Goods goods, int quantity) {
@@ -32,6 +40,7 @@ public class OrderGoods {
         this.order = order;
         this.goods = goods;
         this.quantity = quantity;
-        this.id = new OrderGoodsId(order.getId(), goods.getId());
+        this.orderId = order.getId();
+        this.goodsId = goods.getId();
     }
 }

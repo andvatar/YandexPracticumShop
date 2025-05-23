@@ -1,15 +1,20 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.*;
+//import jakarta.persistence.*;
+
+
 import lombok.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.relational.core.mapping.Column;
+import org.springframework.data.relational.core.mapping.Table;
+import org.springframework.data.annotation.Id;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-@Entity
 @Table(name = "goods")
 @NoArgsConstructor
 @AllArgsConstructor
@@ -17,31 +22,30 @@ import java.util.Objects;
 @Setter
 public class Goods {
     @Id
-    @Column(name = "id", nullable = false, unique = true)
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column("id")
     private long id;
 
     @JsonProperty("title")
-    @Column(name = "title", nullable = false)
+    @Column("title")
     private String title;
 
     @JsonProperty("description")
-    @Column(name = "description")
+    @Column("description")
     private String description;
 
     @JsonProperty("img_path")
-    @Column(name = "img_path")
+    @Column("img_path")
     private String imgPath;
 
     @JsonProperty("quantity")
-    @Column(name = "quantity")
+    @Column("quantity")
     private int quantity;
 
     @JsonProperty("price_amount")
-    @Column(name = "price_amount")
+    @Column("price_amount")
     private Double price;
 
-    @OneToMany(fetch = FetchType.LAZY, mappedBy = "goods")
+    @Transient
     private List<OrderGoods> orderGoods = new ArrayList<>();
 
     public int getCount() {

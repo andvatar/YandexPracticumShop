@@ -5,10 +5,12 @@ import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
+
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.*;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
@@ -31,18 +33,18 @@ public class GoodsService {
         this.orderService = orderService;
     }
 
-    public Mono<Page<Goods>> findAll(String search, int page, int size, String sortBy, String order) {
+    public Mono<PageImpl<ItemDTO>> findAll(String search, int page, int size, String sortBy, String order) {
         Pageable pageable = PageRequest.of(page, size, Objects.equals(sortBy, "no") ? Sort.unsorted() : Sort.by(Sort.Direction.fromString(order), sortBy));
         if(search == null || search.isEmpty()) {
-            return goodsRepository.findAllByQuantityGreaterThan(0, pageable)
+            return goodsRepository.findAllDTO(pageable)
                     .collectList()
-                    .zipWith(goodsRepository.countByQuantityGreaterThan(0))
+                    .zipWith(goodsRepository.countByQuantityGreaterThanZero())
                     .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2()));
         }
         else{
-            return goodsRepository.findAllByTitleOrDescription(search, search, pageable)
+            return goodsRepository.findAllDTOByTitle("%" + search + "%", pageable)
                     .collectList()
-                    .zipWith(goodsRepository.countByTitleOrDescription(search, search))
+                    .zipWith(goodsRepository.countByTitleOrDescription("%" + search + "%"))
                     .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2()));
         }
     }
@@ -52,37 +54,39 @@ public class GoodsService {
                 .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id)));
     }
 
+    public Mono<ItemDTO> findDTOById(long id) {
+        return goodsRepository.findDTOById(id)
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id)));
+    }
+
     @Transactional
     public Mono<Void> addRemoveToCart(long goodsId, String action) {
 
-        return orderService.getCart()
-                .flatMap(cart -> {
-                    long orderId = cart.getId();
-                    return findById(goodsId)
-                            .flatMap(goods -> {
-                                        int goodsQuantity = goods.getQuantity();
+        return Mono.zip(orderService.getCart(), goodsRepository.findById(goodsId))
+                .flatMap(tuple2 -> {
+                    Order cart = tuple2.getT1();
+                    Goods goods = tuple2.getT2();
+                    int goodsQuantity = goods.getQuantity();
 
-                                        return orderGoodsRepository.findByIdOrderIdAndIdGoodsId(orderId, goodsId)
-                                                .switchIfEmpty(Mono.defer(() -> {
-                                                    if (action.equals("plus")) {
-                                                        return Mono.just(new OrderGoods(cart, goods, 0));
-                                                    } else {
-                                                        return Mono.error(new NoSuchElementException("No goods found with id: " + goodsId));
-                                                    }
-                                                }))
-                                                .flatMap(
-                                                        orderGoods ->
-                                                                switch (action) {
-                                                                    case "plus" -> addRemoveGoods(orderGoods, 1, goodsQuantity);
-                                                                    case "minus" ->
-                                                                            addRemoveGoods(orderGoods, -1, goodsQuantity);
-                                                                    case "delete" ->
-                                                                            orderGoodsRepository.delete(orderGoods).then();
-                                                                    default ->
-                                                                            Mono.error(new NoSuchElementException("Unknown action: " + action));
-                                                                }
-                                                );
-                                    }
+                    return orderGoodsRepository.findByOrderIdAndGoodsId(cart.getId(), goodsId)
+                            .switchIfEmpty(Mono.defer(() -> {
+                                if (action.equals("plus")) {
+                                    return Mono.just(new OrderGoods(cart, goods, 0));
+                                } else {
+                                    return Mono.error(new NoSuchElementException("No goods found with id: " + goodsId));
+                                }
+                            }))
+                            .flatMap(
+                                    orderGoods ->
+                                            switch (action) {
+                                                case "plus" -> addRemoveGoods(orderGoods, 1, goodsQuantity);
+                                                case "minus" ->
+                                                        addRemoveGoods(orderGoods, -1, goodsQuantity);
+                                                case "delete" ->
+                                                        orderGoodsRepository.delete(orderGoods).then();
+                                                default ->
+                                                        Mono.error(new NoSuchElementException("Unknown action: " + action));
+                                            }
                             );
                 });
     }
@@ -127,4 +131,5 @@ public class GoodsService {
             return orderGoodsRepository.save(orderGoods).then();
         }
     }
+
 }
