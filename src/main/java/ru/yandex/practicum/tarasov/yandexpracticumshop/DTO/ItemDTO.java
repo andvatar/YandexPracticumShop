@@ -8,15 +8,15 @@ import org.springframework.data.relational.core.mapping.Table;
 public record ItemDTO(
         @Id
         @Column("id")
-        long id,
+        Long id,
         @Column("title")
         String title,
         @Column("description")
         String description,
         @Column("price_amount")
-        double price,
+        Double price,
         @Column("count")
-        int count,
+        Integer count,
         @Column("img_path")
         String imgPath) {
 }

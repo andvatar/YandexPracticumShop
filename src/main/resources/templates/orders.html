@@ -16,12 +16,11 @@
     <tr th:each="order : ${orders}">
         <td>
             <h2>
-                <a th:text="${'Заказ №'+order.getId()}" th:href="${'/orders/'+order.getId()}"></a>
+                <a th:text="${'Заказ №'+order.id()}" th:href="${'/orders/'+order.id()}"></a>
             </h2>
             <table>
-                <tr th:each="orderGoods : ${order.getGoods()}"
-                    th:with="item=${orderGoods.getGoods()}">
-                    <td th:text="${item.getTitle()+' ('+orderGoods.getQuantity()+' шт.) '+(item.getPrice()*orderGoods.getQuantity())+' руб.'}"></td>
+                <tr th:each="item : ${order.items()}">
+                    <td th:text="${item.title()+' ('+item.count()+' шт.) '+(item.price()*item.count())+' руб.'}"></td>
                 </tr>
             </table>
             <p>

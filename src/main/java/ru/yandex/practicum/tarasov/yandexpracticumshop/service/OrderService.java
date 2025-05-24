@@ -8,7 +8,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDTO;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepository;
 
 import java.util.ArrayList;
@@ -18,26 +17,23 @@ import java.util.NoSuchElementException;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final GoodsRepository goodsRepository;
-    private final OrderGoodsRepository orderGoodsRepository;
 
     public OrderService(OrderRepository orderRepository,
-                        GoodsRepository goodsRepository, OrderGoodsRepository orderGoodsRepository) {
+                        GoodsRepository goodsRepository) {
         this.orderRepository = orderRepository;
         this.goodsRepository = goodsRepository;
-        this.orderGoodsRepository = orderGoodsRepository;
     }
 
     public Mono<OrderDTO> getOrderDTO(long id) {
         return orderRepository.findById(id)
-                .flatMap(this::fetchItems)
-                .flatMap(order -> new OrderDTO(order.getId(), order.getStatus(), order.items()))
-                .switchIfEmpty(Mono.error(new NoSuchElementException("No order found with id: " + id)));
+                .switchIfEmpty(Mono.error(new NoSuchElementException("No order found with id: " + id)))
+                .flatMap(this::orderToDTO);
     }
 
     public Mono<OrderDTO> getCartDTO() {
-        return orderRepository.findCartDTO()
-                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))
-                        .map(cart -> new OrderDTO(cart.getId(), cart.getStatus(), new ArrayList<>()))));
+        return orderRepository.findCart()
+                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))))
+                .flatMap(this::orderToDTO);
     }
 
     public Mono<Order> getCart() {
@@ -46,11 +42,12 @@ public class OrderService {
     }
 
     public Flux<Order> getOrders() {
-        return orderRepository.findByStatusNot(OrderStatus.NEW);
+        return orderRepository.findOrders();
     }
 
     public Flux<OrderDTO> getOrdersDTO() {
-        return orderRepository.findOrdersDTO();
+        return orderRepository.findOrders()
+                .flatMap(this::orderToDTO);
     }
 
     @Transactional
@@ -74,12 +71,11 @@ public class OrderService {
                 .map(Order::getId);
     }
 
-    private Mono<Order> fetchItems(Order order) {
-        return orderGoodsRepository.findByOrderId(order.getId())
+    private Mono<OrderDTO> orderToDTO(Order order) {
+        return goodsRepository.findAllDTOByOrderId(order.getId())
                 .collectList()
-                .map(items -> {
-                    order.setGoods(items);
-                    return order;}
+                .map(items ->
+                        new OrderDTO(order.getId(), order.getStatus(), items)
                 );
     }
 }

@@ -33,20 +33,26 @@ public class GoodsService {
         this.orderService = orderService;
     }
 
-    public Mono<PageImpl<ItemDTO>> findAll(String search, int page, int size, String sortBy, String order) {
-        Pageable pageable = PageRequest.of(page, size, Objects.equals(sortBy, "no") ? Sort.unsorted() : Sort.by(Sort.Direction.fromString(order), sortBy));
-        if(search == null || search.isEmpty()) {
-            return goodsRepository.findAllDTO(pageable)
-                    .collectList()
-                    .zipWith(goodsRepository.countByQuantityGreaterThanZero())
-                    .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2()));
+    public Mono<Page<ItemDTO>> findAll(String search, int page, int size, String sortBy, String order) {
+        Pageable pageable = PageRequest.of(page, size, Sort.unsorted());
+        return orderService.getCartDTO()
+                .flatMap(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable, sortBy, order));
+        /*if(search == null || search.isEmpty()) {
+            return orderService.getCartDTO()
+                    .flatMap(cart ->
+                        goodsRepository.findAllDTO(cart.id(), pageable, sortBy, order)
+                        .collectList()
+                        .zipWith(goodsRepository.countByQuantityGreaterThanZero())
+                        .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2())));
         }
         else{
-            return goodsRepository.findAllDTOByTitle("%" + search + "%", pageable)
-                    .collectList()
-                    .zipWith(goodsRepository.countByTitleOrDescription("%" + search + "%"))
-                    .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2()));
-        }
+            return orderService.getCartDTO()
+                    .flatMap(cart ->
+                        goodsRepository.findAllDTOByTitle("%" + search + "%", cart.id(), pageable, sortBy, order)
+                        .collectList()
+                        .zipWith(goodsRepository.countByTitleOrDescription("%" + search + "%"))
+                        .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2())));
+        }*/
     }
 
     public Mono<Goods> findById(long id) {
@@ -55,12 +61,15 @@ public class GoodsService {
     }
 
     public Mono<ItemDTO> findDTOById(long id) {
-        return goodsRepository.findDTOById(id)
-                .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id)));
+        return orderService.getCartDTO()
+                .flatMap(cart ->
+                    goodsRepository.findDTOById(id, cart.id())
+                    .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id))));
     }
 
     @Transactional
     public Mono<Void> addRemoveToCart(long goodsId, String action) {
+        System.out.println("addRemoveToCart" + goodsId + " " + action);
 
         return Mono.zip(orderService.getCart(), goodsRepository.findById(goodsId))
                 .flatMap(tuple2 -> {

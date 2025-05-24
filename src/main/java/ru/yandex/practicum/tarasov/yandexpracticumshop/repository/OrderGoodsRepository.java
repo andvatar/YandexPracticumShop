@@ -13,6 +13,4 @@ public interface OrderGoodsRepository extends ReactiveCrudRepository<OrderGoods,
     Mono<OrderGoods> findByOrderIdAndGoodsId(Long orderId, Long goodsId);
     Flux<OrderGoods> findByOrderId(Long orderId);
     Flux<OrderGoods> findByGoodsId(Long goodsId);
-
-
 }

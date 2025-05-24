@@ -30,13 +30,11 @@ public class OrderController {
     }
 
     @RequestMapping("/orders")
-    public Flux<String> getOrders(Model model) {
+    public Mono<String> getOrders(Model model) {
         return orderService.getOrdersDTO()
-                        .map(orders -> {
-                            model.addAttribute("orders", orders);
-                            return "orders";
-                        }
-        );
+                .collectList()
+                .doOnNext(orders -> model.addAttribute("orders", orders))
+                .thenReturn("orders");
     }
 
     @PostMapping("/buy")
