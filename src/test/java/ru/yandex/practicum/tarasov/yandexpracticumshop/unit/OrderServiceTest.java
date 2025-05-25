@@ -67,8 +67,6 @@ public class OrderServiceTest {
 
         when(orderRepository.findCart()).thenReturn(Mono.just(order));
 
-        //Exception exception = assertThrows(NoSuchElementException.class, () -> );
-
         StepVerifier
                 .create(orderService.buyCart())
                 .expectErrorMatches(throwable ->
@@ -77,11 +75,6 @@ public class OrderServiceTest {
 
         verify(goodsRepository, times(0)).save(any(Goods.class));
         verify(orderRepository, times(0)).save(any(Order.class));
-
-        /*String expectedMessage = "Cart is empty";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));*/
     }
 
     @Test
@@ -89,8 +82,6 @@ public class OrderServiceTest {
         orderGoods.setQuantity(15);
 
         when(orderRepository.findCart()).thenReturn(Mono.just(order));
-
-        //Exception exception = assertThrows(NoSuchElementException.class, () -> orderService.buyCart());
 
         StepVerifier
                 .create(orderService.buyCart())
@@ -100,23 +91,18 @@ public class OrderServiceTest {
 
         verify(goodsRepository, times(0)).save(any(Goods.class));
         verify(orderRepository, times(0)).save(any(Order.class));
-
-        /*String expectedMessage = "Not enough goods in the store: Test";
-        String actualMessage = exception.getMessage();
-
-        assertTrue(actualMessage.contains(expectedMessage));*/
     }
 
     @Test
     public void buyCart() {
         when(orderRepository.findCart()).thenReturn(Mono.just(order));
-        when(orderRepository.save(any(Order.class))).thenAnswer(i -> i.getArguments()[0]);
-        when(goodsRepository.save(any(Goods.class))).thenAnswer(i -> i.getArguments()[0]);
+        when(orderRepository.save(any(Order.class))).thenAnswer(i -> Mono.just(i.getArguments()[0]));
+        when(goodsRepository.save(any(Goods.class))).thenAnswer(i -> Mono.just(i.getArguments()[0]));
 
         StepVerifier
                 .create(orderService.buyCart())
+                .assertNext(id -> assertEquals(id, order.getId()))
                 .verifyComplete();
-        //orderService.buyCart();
 
         verify(goodsRepository, times(1)).save(any(Goods.class));
         verify(orderRepository, times(1)).save(any(Order.class));

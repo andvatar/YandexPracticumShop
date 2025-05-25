@@ -1,8 +1,6 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.entity;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-//import jakarta.persistence.*;
-
 
 import lombok.*;
 import org.apache.commons.lang3.builder.ToStringBuilder;
@@ -47,15 +45,6 @@ public class Goods {
 
     @Transient
     private List<OrderGoods> orderGoods = new ArrayList<>();
-
-    public int getCount() {
-        return orderGoods
-                .stream()
-                .filter(og -> og.getOrder().getStatus().equals(OrderStatus.NEW))
-                .findFirst()
-                .map(OrderGoods::getQuantity)
-                .orElse(0);
-    }
 
     @Override
     public boolean equals(Object o) {

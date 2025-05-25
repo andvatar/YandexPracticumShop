@@ -9,7 +9,6 @@ import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
-import java.io.IOException;
 import java.util.Optional;
 
 @Controller
@@ -32,7 +31,7 @@ public class GoodsController {
                               @RequestParam("pageSize") Optional<Integer> size,
                               @RequestParam("sort") Optional<String> sort,
                               @RequestParam(value = "search", required = false) String[] search) {
-        return goodsService.findAll(search == null ? "" : search[0], page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC")
+        return goodsService.findAll(search == null || search.length == 0 ? "" : search[0], page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC")
                         .map(goods -> {
                             model.addAttribute("paging", goods);
                             return "main";
@@ -73,7 +72,7 @@ public class GoodsController {
     }
 
     @PostMapping(value ="/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Mono<String> importGoods(@RequestPart("file") Mono<FilePart> filePartMono) throws IOException {
+    public Mono<String> importGoods(@RequestPart("file") Mono<FilePart> filePartMono) {
         return filePartMono.flatMap(goodsService::importGoods).thenReturn("redirect:/main/items");
     }
 }

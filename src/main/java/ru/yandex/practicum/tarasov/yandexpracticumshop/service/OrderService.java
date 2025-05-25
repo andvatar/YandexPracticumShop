@@ -8,6 +8,7 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDTO;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepository;
 
 import java.util.NoSuchElementException;
@@ -16,11 +17,13 @@ import java.util.NoSuchElementException;
 public class OrderService {
     private final OrderRepository orderRepository;
     private final GoodsRepository goodsRepository;
+    private final OrderGoodsRepository orderGoodsRepository;
 
     public OrderService(OrderRepository orderRepository,
-                        GoodsRepository goodsRepository) {
+                        GoodsRepository goodsRepository, OrderGoodsRepository orderGoodsRepository) {
         this.orderRepository = orderRepository;
         this.goodsRepository = goodsRepository;
+        this.orderGoodsRepository = orderGoodsRepository;
     }
 
     public Mono<OrderDTO> getOrderDTO(long id) {
@@ -40,6 +43,17 @@ public class OrderService {
                 .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))));
     }
 
+    public Mono<Order> getCartWithItems() {
+        return orderRepository.findCart()
+                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))))
+                .flatMap(cart -> orderGoodsRepository.findByOrderId(cart.getId())
+                        .collectList()
+                        .map(og -> {
+                            cart.setGoods(og);
+                            return cart;
+                        }));
+    }
+
     public Flux<Order> getOrders() {
         return orderRepository.findOrders();
     }
@@ -51,17 +65,20 @@ public class OrderService {
 
     @Transactional
     public Mono<Long> buyCart() {
-        return getCart()
-                .switchIfEmpty(Mono.error(new NoSuchElementException("The cart is empty")))
-                .flatMap(order -> Flux.fromIterable(order.items())
-                        .flatMap(goods -> {
-                                    int newQuantity = goods.getQuantity() - goods.getCount();
-                                    if (newQuantity < 0) {
-                                        return Mono.error(new NoSuchElementException("Not enough goods in the store: " + goods.getTitle()));
-                                    }
-                                    goods.setQuantity(newQuantity);
-                                    return goodsRepository.save(goods);
-                                }
+        return getCartWithItems()
+                .flatMap(order -> Flux.fromIterable(order.getGoods())
+                        .switchIfEmpty(Mono.error(new NoSuchElementException("The cart is empty")))
+                        .flatMap(orderGoods ->
+                                    goodsRepository.findById(orderGoods.getGoodsId())
+                                            .flatMap(goods -> {
+                                                if(orderGoods.getQuantity() > goods.getQuantity()) {
+                                                    return Mono.error(new NoSuchElementException("Not enough goods in the store: " + goods.getTitle()));
+                                                }
+                                                else {
+                                                    goods.setQuantity(goods.getQuantity() - orderGoods.getQuantity());
+                                                    return goodsRepository.save(goods);
+                                                }
+                                            })
                             )
                             .then(Mono.defer(() -> {
                                 order.setStatus(OrderStatus.IN_PROGRESS);
