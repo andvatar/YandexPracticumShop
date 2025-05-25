@@ -4,6 +4,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public record OrderDTO(
@@ -15,10 +16,10 @@ public record OrderDTO(
 
         List<ItemDTO> items
 ) {
-        public double totalSum() {
+        public BigDecimal totalSum() {
                 return items()
                         .stream()
-                        .map(item -> item.price() * item.count())
-                        .reduce(0.0, Double::sum);
+                        .map(item -> item.price().multiply(BigDecimal.valueOf(item.count())))
+                        .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
 }

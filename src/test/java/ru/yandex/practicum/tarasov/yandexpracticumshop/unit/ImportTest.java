@@ -1,17 +1,22 @@
-package ru.yandex.practicum.tarasov.yandexpracticumshop.integration;
+package ru.yandex.practicum.tarasov.yandexpracticumshop.unit;
 
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.mock.web.MockMultipartFile;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.test.context.ActiveProfiles;
+import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.YandexPracticumShopApplication;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
-import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.mock;
 
 @SpringBootTest(classes = YandexPracticumShopApplication.class)
 @ActiveProfiles("test")
@@ -20,58 +25,58 @@ public class ImportTest {
     @Autowired
     private GoodsService goodsService;
 
-/*    @Test
-    public void importTest() throws IOException {
+    @Test
+    public void importTest() {
         String csv = """
                 title,description,img_path,quantity,price_amount
-                ImportOne,ImportOne,4.png,100,19000
-                ImportTwo,ImportTwo,3.png,50,100000""";
-        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.csv", "text/csv", csv.getBytes());
+                ImportOne,ImportOne,4.png,100,19000.0
+                ImportTwo,ImportTwo,3.png,50,100000.0""";
+
+        FilePart mockFilePart = mock(FilePart.class);
+
+        DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
+        DataBuffer dataBuffer = factory.wrap(csv.getBytes(StandardCharsets.UTF_8));
+        Mockito.when(mockFilePart.content()).thenReturn(Flux.just(dataBuffer));
 
         StepVerifier
-                .create(goodsService.importGoods(mockMultipartFile))
+                .create(goodsService.importGoods(mockFilePart))
                 .expectComplete()
                 .verify();
-        //goodsService.importGoods(mockMultipartFile);
 
         StepVerifier
                 .create(goodsService.findAll("", 0, 100, "no", "asc"))
-                .expectNextCount(3)
+                .assertNext(itemsPage -> assertEquals(3, itemsPage.getTotalElements()))
                 .verifyComplete();
-
-
-        //assertEquals(3, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
 
         // nothing should be changed if we import the same file second time
         StepVerifier
-                .create(goodsService.importGoods(mockMultipartFile))
+                .create(goodsService.importGoods(mockFilePart))
                 .verifyComplete();
-        //goodsService.importGoods(mockMultipartFile);
 
         StepVerifier
                 .create(goodsService.findAll("", 0, 100, "no", "asc"))
                 .assertNext(goodsPage -> assertEquals(3, goodsPage.getTotalElements()))
                 .verifyComplete();
-        //goodsService.importGoods(mockMultipartFile);
-        //assertEquals(3, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
     }
 
     @Test
-    public void importEmptyFileTest() throws IOException {
+    public void importEmptyFileTest() {
         String csv = "title,description,img_path,quantity,price_amount";
-        MockMultipartFile mockMultipartFile = new MockMultipartFile("file", "test.csv", "text/csv", csv.getBytes());
 
-        //goodsService.importGoods(mockMultipartFile);
-        //assertEquals(1, goodsService.findAll("", 0, 100, "no", "asc").getContent().size());
+        FilePart mockFilePart = mock(FilePart.class);
+
+        DefaultDataBufferFactory factory = new DefaultDataBufferFactory();
+        DataBuffer dataBuffer = factory.wrap(csv.getBytes(StandardCharsets.UTF_8));
+        Mockito.when(mockFilePart.content()).thenReturn(Flux.just(dataBuffer));
+
         StepVerifier
-                .create(goodsService.importGoods(mockMultipartFile))
+                .create(goodsService.importGoods(mockFilePart))
                 .expectComplete()
                 .verify();
-        //goodsService.importGoods(mockMultipartFile);
 
         StepVerifier
                 .create(goodsService.findAll("", 0, 100, "no", "asc"))
                 .assertNext(goodsPage -> assertEquals(1, goodsPage.getTotalElements()))
                 .verifyComplete();
-    }*/
+    }
 }

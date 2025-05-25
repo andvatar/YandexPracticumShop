@@ -20,7 +20,7 @@
             </h2>
             <table>
                 <tr th:each="item : ${order.items()}">
-                    <td th:text="${item.title()+' ('+item.count()+' шт.) '+(item.price()*item.count())+' руб.'}"></td>
+                    <td th:text="${item.title()+' ('+item.count()+' шт.) '+(item.price().doubleValue()*item.count())+' руб.'}"></td>
                 </tr>
             </table>
             <p>

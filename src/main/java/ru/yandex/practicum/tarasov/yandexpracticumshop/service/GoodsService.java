@@ -1,17 +1,13 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 
-import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
-import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.*;
 import org.springframework.http.codec.multipart.FilePart;
-import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.multipart.MultipartFile;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
@@ -20,10 +16,8 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepositor
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 
 @Service
 public class GoodsService {

@@ -66,22 +66,12 @@ public class GoodsServiceTest {
         when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
         when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.empty());
 
-        //Exception exception = assertThrows(NoSuchElementException.class, () -> goodsService.addRemoveToCart(1L, "plus"));
-
         StepVerifier
                 .create(goodsService.addRemoveToCart(1L, "plus"))
                 .expectErrorMatches(throwable ->
                     throwable instanceof NoSuchElementException && throwable.getMessage().equals("Not enough goods in store")
                 )
                 .verify();
-                //.expectErrorMessage("")
-                //.expectError(NoSuchElementException.class)
-
-
-        //String expectedMessage = "Not enough goods in store";
-        //String actualMessage = exception.getMessage();
-
-        //assertTrue(actualMessage.contains(expectedMessage));
     }
 
     @Test
@@ -89,6 +79,7 @@ public class GoodsServiceTest {
         when(orderService.getCart()).thenReturn(Mono.just(order));
         when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
         when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.empty());
+        when(orderGoodsRepository.save(any())).thenAnswer(i -> Mono.just(i.getArguments()[0]));
 
 
 
@@ -109,6 +100,7 @@ public class GoodsServiceTest {
         when(orderService.getCart()).thenReturn(Mono.just(order));
         when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
         when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.just(orderGoods));
+        when(orderGoodsRepository.save(any())).thenAnswer(i -> Mono.just(i.getArguments()[0]));
 
         StepVerifier
                 .create(goodsService.addRemoveToCart(1L, "minus"))
@@ -128,6 +120,7 @@ public class GoodsServiceTest {
         when(orderService.getCart()).thenReturn(Mono.just(order));
         when(goodsRepository.findById(1L)).thenReturn(Mono.just(goods));
         when(orderGoodsRepository.findByOrderIdAndGoodsId(1L, 1L)).thenReturn(Mono.just(orderGoods));
+        when(orderGoodsRepository.delete(any())).thenReturn(Mono.empty());
 
         StepVerifier
                 .create(goodsService.addRemoveToCart(1L, "minus"))

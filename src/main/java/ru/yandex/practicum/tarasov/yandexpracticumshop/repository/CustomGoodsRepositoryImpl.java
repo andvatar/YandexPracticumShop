@@ -1,17 +1,17 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.repository;
 
-import org.jetbrains.annotations.NotNull;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.r2dbc.core.DatabaseClient;
-import reactor.core.publisher.Flux;
+import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
 
 import java.math.BigDecimal;
 import java.util.List;
 
+@Repository
 public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
 
     private final DatabaseClient dbClient;
@@ -22,7 +22,7 @@ public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
 
     @Override
     public Mono<Page<ItemDTO>> findAllDTOByTitle(String search, long orderId, Pageable pageable, String sortBy, String order) {
-        StringBuilder sql = getSql(search, sortBy, order);
+        StringBuilder sql = getSql(sortBy, order);
 
         String countSql = "select count(*) from goods g where g.quantity > 0 and (:search = '' or g.title like :search or g.description like :search)";
 
@@ -32,11 +32,11 @@ public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
                 .bind("size", pageable.getPageSize())
                 .bind("offset", pageable.getOffset())
                 .map((row, metadata) -> new ItemDTO(
-                        row.get("id", long.class),
+                        row.get("id", Long.class),
                         row.get("title", String.class),
                         row.get("description", String.class),
-                        row.get("price_amount", Double.class),
-                        row.get("count", int.class),
+                        row.get("price_amount", BigDecimal.class),
+                        row.get("count", Integer.class),
                         row.get("img_path", String.class)
                         )
                 )
@@ -52,7 +52,7 @@ public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
                 .map(tuple2 -> new PageImpl<>(tuple2.getT1(), pageable, tuple2.getT2()));
     }
 
-    private StringBuilder getSql(String search, String sortBy, String order) {
+    private StringBuilder getSql(String sortBy, String order) {
         StringBuilder sql = new StringBuilder("""
             select g.*, coalesce(og.quantity,0) as "count"
             from goods g

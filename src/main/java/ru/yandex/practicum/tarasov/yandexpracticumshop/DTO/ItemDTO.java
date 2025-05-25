@@ -4,6 +4,8 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
 
+import java.math.BigDecimal;
+
 @Table("goods")
 public record ItemDTO(
         @Id
@@ -14,7 +16,7 @@ public record ItemDTO(
         @Column("description")
         String description,
         @Column("price_amount")
-        Double price,
+        BigDecimal price,
         @Column("count")
         Integer count,
         @Column("img_path")
