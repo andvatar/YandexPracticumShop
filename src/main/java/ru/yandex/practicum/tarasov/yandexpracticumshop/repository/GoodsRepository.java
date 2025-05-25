@@ -13,27 +13,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 
 @Repository
 public interface GoodsRepository extends ReactiveCrudRepository<Goods, Long>, CustomGoodsRepository {
-    /*@Query("""
-            select g.*, coalesce(og.quantity,0) as "count"
-            from goods g
-            left outer join order_goods og on g.id = og.goods_id and og.order_id = :order_id
-            where g.quantity > 0
-            order by
-                case when :sortBy = 'title' and :orderDirection = 'ASC' then g.title end,
-                case when :sortBy = 'price' and :orderDirection = 'ASC' then g.price_amount end,
-                case when :sortBy = 'title' and :orderDirection = 'DESC' then g.title end DESC,
-                case when :sortBy = 'price' and :orderDirection = 'ASC' then g.price_amount end DESC,
-                case when :sortBy = 'no' then g.id end""")
-    Flux<ItemDTO> findAllDTO(@Param("order_id") long orderId, Pageable pageable, @Param("sortBy") String sortBy, @Param(":orderDirection") String orderDirection);
-
-    @Query("""
-            select g.*, coalesce(og.quantity,0) as "count"
-            from goods g
-            left outer join order_goods og on g.id = og.goods_id and og.order_id = :order_id
-            where g.quantity > 0
-            and (title like :name or description like :name)""")
-    Flux<ItemDTO> findAllDTOByTitle(@Param("name") String name, @Param("order_id") long orderId, Pageable pageable, String sortBy, String orderDirection);*/
-
     @Query("""
             select g.*, coalesce(og.quantity,0) as "count"
             from goods g

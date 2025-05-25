@@ -1,7 +1,6 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.DTO;
 
 import org.springframework.data.annotation.Id;
-import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
 

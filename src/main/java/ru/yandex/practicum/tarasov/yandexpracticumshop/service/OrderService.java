@@ -10,7 +10,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepository;
 
-import java.util.ArrayList;
 import java.util.NoSuchElementException;
 
 @Service

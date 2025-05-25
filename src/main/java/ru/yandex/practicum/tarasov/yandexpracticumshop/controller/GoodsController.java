@@ -1,17 +1,15 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.controller;
 
 import org.springframework.http.MediaType;
+import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.Optional;
 
 @Controller
@@ -27,14 +25,14 @@ public class GoodsController {
         return Mono.just("redirect:/main/items");
     }
 
-    // мне не очевидно почему после перехода flux параметр search стал приходить в виде массива, разобраться не успеваю
+    // мне не очевидно почему после перехода на flux параметр search стал приходить в виде массива, разобраться не успеваю
     @RequestMapping("/main/items")
     public Mono<String> getAllGoods(Model model,
                               @RequestParam("pageNumber") Optional<Integer> page,
                               @RequestParam("pageSize") Optional<Integer> size,
                               @RequestParam("sort") Optional<String> sort,
                               @RequestParam(value = "search", required = false) String[] search) {
-        return goodsService.findAll(search[0], page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC")
+        return goodsService.findAll(search == null ? "" : search[0], page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC")
                         .map(goods -> {
                             model.addAttribute("paging", goods);
                             return "main";
@@ -74,8 +72,8 @@ public class GoodsController {
         return Mono.just("import");
     }
 
-    @PostMapping("/import")
-    public Mono<String> importGoods(@RequestParam("file") MultipartFile file) throws IOException {
-        return goodsService.importGoods(file).thenReturn("redirect:/main/items");
+    @PostMapping(value ="/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Mono<String> importGoods(@RequestPart("file") Mono<FilePart> filePartMono) throws IOException {
+        return filePartMono.flatMap(goodsService::importGoods).thenReturn("redirect:/main/items");
     }
 }

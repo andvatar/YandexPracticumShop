@@ -3,7 +3,11 @@ package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 import com.fasterxml.jackson.databind.MappingIterator;
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import org.springframework.core.io.buffer.DataBuffer;
+import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.*;
+import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.http.codec.multipart.Part;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -16,6 +20,8 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepositor
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 
@@ -37,22 +43,6 @@ public class GoodsService {
         Pageable pageable = PageRequest.of(page, size, Sort.unsorted());
         return orderService.getCartDTO()
                 .flatMap(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable, sortBy, order));
-        /*if(search == null || search.isEmpty()) {
-            return orderService.getCartDTO()
-                    .flatMap(cart ->
-                        goodsRepository.findAllDTO(cart.id(), pageable, sortBy, order)
-                        .collectList()
-                        .zipWith(goodsRepository.countByQuantityGreaterThanZero())
-                        .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2())));
-        }
-        else{
-            return orderService.getCartDTO()
-                    .flatMap(cart ->
-                        goodsRepository.findAllDTOByTitle("%" + search + "%", cart.id(), pageable, sortBy, order)
-                        .collectList()
-                        .zipWith(goodsRepository.countByTitleOrDescription("%" + search + "%"))
-                        .map(t -> new PageImpl<>(t.getT1(), pageable, t.getT2())));
-        }*/
     }
 
     public Mono<Goods> findById(long id) {
@@ -101,30 +91,42 @@ public class GoodsService {
     }
 
     @Transactional
-    public Mono<Void> importGoods(MultipartFile file) throws IOException {
+    public Mono<Void> importGoods(FilePart file) {
         CsvMapper mapper = new CsvMapper();
         CsvSchema schema = CsvSchema.emptySchema().withHeader();
 
-        MappingIterator<Goods> goodsIt = mapper
-                .readerFor(Goods.class)
-                .with(schema)
-                .readValues(file.getInputStream());
+        Mono<List<Object>> goodsListMono = DataBufferUtils.join(file.content())
+                .map(content -> {
+                    try {
+                        return mapper
+                                .readerFor(Goods.class)
+                                .with(schema)
+                                .readValues(content.asInputStream(true))
+                                .readAll();
+                    } catch (IOException e) {
+                        throw new RuntimeException("Failed to read CSV content: " + e.getMessage(), e);
+                    }
+                })
+                .onErrorResume(e -> Mono.error(new RuntimeException("Error processing file content: " + e.getMessage(), e)));
 
-        return Flux.fromIterable(goodsIt.readAll())
-                        .flatMap(goods ->
-                                    goodsRepository.findByTitle(goods.getTitle())
-                                            .switchIfEmpty(Mono.just(goods))
-                                            .flatMap(existingGoods ->
-                                            {
-                                                existingGoods.setDescription(goods.getDescription());
-                                                existingGoods.setPrice(goods.getPrice());
-                                                existingGoods.setQuantity(goods.getQuantity());
-                                                existingGoods.setImgPath(goods.getImgPath());
-                                                return goodsRepository.save(existingGoods).then();
-                                            }).then()
 
-                        )
-                .then();
+        return goodsListMono.flatMap(goodsList ->
+                Flux.fromIterable(goodsList)
+                        .flatMap(o -> {
+                            Goods goods = (Goods) o;
+                            return goodsRepository.findByTitle(goods.getTitle())
+                                    .switchIfEmpty(Mono.just(goods))
+                                    .flatMap(existingGoods ->
+                                    {
+                                        existingGoods.setDescription(goods.getDescription());
+                                        existingGoods.setPrice(goods.getPrice());
+                                        existingGoods.setQuantity(goods.getQuantity());
+                                        existingGoods.setImgPath(goods.getImgPath());
+                                        return goodsRepository.save(existingGoods).then();
+                                    });
+                        })
+                        .then()
+        );
     }
 
     private Mono<Void> addRemoveGoods(OrderGoods orderGoods, int amount, int goodsQuantity) {

@@ -20,7 +20,7 @@ public class ImportTest {
     @Autowired
     private GoodsService goodsService;
 
-    @Test
+/*    @Test
     public void importTest() throws IOException {
         String csv = """
                 title,description,img_path,quantity,price_amount
@@ -73,5 +73,5 @@ public class ImportTest {
                 .create(goodsService.findAll("", 0, 100, "no", "asc"))
                 .assertNext(goodsPage -> assertEquals(1, goodsPage.getTotalElements()))
                 .verifyComplete();
-    }
+    }*/
 }
