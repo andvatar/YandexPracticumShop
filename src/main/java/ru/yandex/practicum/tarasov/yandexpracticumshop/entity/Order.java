@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.relational.core.mapping.Column;
 import org.springframework.data.relational.core.mapping.Table;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 
 import java.util.ArrayList;
 import java.util.List;

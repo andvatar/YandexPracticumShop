@@ -6,7 +6,7 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDTO;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepository;

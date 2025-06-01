@@ -12,7 +12,7 @@ import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;

@@ -2,7 +2,7 @@ package ru.yandex.practicum.tarasov.yandexpracticumshop.DTO;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Column;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderStatus;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 
 import java.math.BigDecimal;
 import java.util.List;
