@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -42,8 +44,8 @@ public class GoodsControllerTest {
 
     @Test
     void addItemToCart() {
-        Long id = goodsService.findAll(null, 0, 10, null, null)
-                        .map(page -> page.getContent().getFirst().id()).block();
+        Long id = goodsService.findAll(null, PageRequest.of(0, 100, Sort.unsorted()))
+                        .blockFirst().id();
 
         webTestClient.post()
                 .uri("/main/items/{id}", id)

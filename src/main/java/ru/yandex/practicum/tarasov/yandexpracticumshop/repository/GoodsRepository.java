@@ -26,4 +26,7 @@ public interface GoodsRepository extends ReactiveCrudRepository<Goods, Long>, Cu
     Flux<ItemDTO> findAllDTOByOrderId(@Param("order_id") long orderId);
 
     Mono<Goods> findByTitle(String title);
+
+    @Query("select count(*) from goods g where g.quantity > 0 and (:search = '' or g.title like :search or g.description like :search)")
+    Mono<Integer> countByTitle(@Param("search") String search);
 }

@@ -2,6 +2,10 @@ package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 
 import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.fasterxml.jackson.dataformat.csv.CsvSchema;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.*;
 import org.springframework.http.codec.multipart.FilePart;
@@ -24,19 +28,31 @@ public class GoodsService {
     private final GoodsRepository goodsRepository;
     private final OrderGoodsRepository orderGoodsRepository;
     private final OrderService orderService;
+    private final CacheManager cacheManager;
 
     public GoodsService(GoodsRepository goodsRepository,
                         OrderGoodsRepository orderGoodsRepository,
-                        OrderService orderService) {
+                        OrderService orderService,
+                        CacheManager cacheManager) {
         this.goodsRepository = goodsRepository;
         this.orderGoodsRepository = orderGoodsRepository;
         this.orderService = orderService;
+        this.cacheManager = cacheManager;
     }
 
-    public Mono<Page<ItemDTO>> findAll(String search, int page, int size, String sortBy, String order) {
-        Pageable pageable = PageRequest.of(page, size, Sort.unsorted());
+    @Cacheable(
+            value = "items"
+    )
+    public Flux<ItemDTO> findAll(String search, Pageable pageable) {
         return orderService.getCartDTO()
-                .flatMap(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable, sortBy, order));
+                .flatMapMany(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable));
+    }
+
+    @Cacheable(
+            value = "items"
+    )
+    public Mono<Integer> count(String search) {
+        return goodsRepository.countByTitle(search);
     }
 
     public Mono<Goods> findById(long id) {
@@ -44,6 +60,10 @@ public class GoodsService {
                 .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id)));
     }
 
+    @Cacheable (
+            value = "item",
+            key = "#id"
+    )
     public Mono<ItemDTO> findDTOById(long id) {
         return orderService.getCartDTO()
                 .flatMap(cart ->
@@ -51,9 +71,21 @@ public class GoodsService {
                     .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id))));
     }
 
+    @Cacheable (
+            value = "itemsByOrder",
+            key = "#orderId"
+    )
+    public Flux<ItemDTO> findAllDTOByOrderId(long orderId) {
+        return goodsRepository.findAllDTOByOrderId(orderId);
+    }
+
     @Transactional
+    @Caching(evict = {
+                @CacheEvict(value = "item", key = "#goodsId"),
+                @CacheEvict(value = "items", allEntries = true)
+            }
+    )
     public Mono<Void> addRemoveToCart(long goodsId, String action) {
-        System.out.println("addRemoveToCart" + goodsId + " " + action);
 
         return Mono.zip(orderService.getCart(), goodsRepository.findById(goodsId))
                 .flatMap(tuple2 -> {
@@ -80,7 +112,13 @@ public class GoodsService {
                                                 default ->
                                                         Mono.error(new NoSuchElementException("Unknown action: " + action));
                                             }
-                            );
+                            )
+                            .doOnSuccess(v -> {
+                                var cache = cacheManager.getCache("itemsByOrder");
+                                if(cache != null) {
+                                    cache.evict(cart.getId());
+                                }
+                            });
                 });
     }
 
@@ -120,7 +158,8 @@ public class GoodsService {
                                     });
                         })
                         .then()
-        );
+                )
+                .doOnSuccess(v -> cacheManager.getCacheNames().forEach(cacheName -> cacheManager.getCache(cacheName).clear()));
     }
 
     private Mono<Void> addRemoveGoods(OrderGoods orderGoods, int amount, int goodsQuantity) {

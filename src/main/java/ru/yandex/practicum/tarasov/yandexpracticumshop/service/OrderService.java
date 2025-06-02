@@ -18,12 +18,14 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final GoodsRepository goodsRepository;
     private final OrderGoodsRepository orderGoodsRepository;
+    private final GoodsService goodsService;
 
     public OrderService(OrderRepository orderRepository,
-                        GoodsRepository goodsRepository, OrderGoodsRepository orderGoodsRepository) {
+                        GoodsRepository goodsRepository, OrderGoodsRepository orderGoodsRepository, GoodsService goodsService) {
         this.orderRepository = orderRepository;
         this.goodsRepository = goodsRepository;
         this.orderGoodsRepository = orderGoodsRepository;
+        this.goodsService = goodsService;
     }
 
     public Mono<OrderDTO> getOrderDTO(long id) {
@@ -88,7 +90,7 @@ public class OrderService {
     }
 
     private Mono<OrderDTO> orderToDTO(Order order) {
-        return goodsRepository.findAllDTOByOrderId(order.getId())
+        return goodsService.findAllDTOByOrderId(order.getId())
                 .collectList()
                 .map(items ->
                         new OrderDTO(order.getId(), order.getStatus(), items)

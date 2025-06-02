@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.io.buffer.DataBuffer;
 import org.springframework.core.io.buffer.DefaultDataBufferFactory;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.test.context.ActiveProfiles;
 import reactor.core.publisher.Flux;
@@ -15,7 +17,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
 import java.nio.charset.StandardCharsets;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.mock;
 
 @SpringBootTest(classes = YandexPracticumShopApplication.class)
@@ -40,12 +41,11 @@ public class ImportTest {
 
         StepVerifier
                 .create(goodsService.importGoods(mockFilePart))
-                .expectComplete()
-                .verify();
+                .verifyComplete();
 
         StepVerifier
-                .create(goodsService.findAll("", 0, 100, "no", "asc"))
-                .assertNext(itemsPage -> assertEquals(3, itemsPage.getTotalElements()))
+                .create(goodsService.findAll("",  PageRequest.of(0, 100, Sort.unsorted())))
+                .expectNextCount(3)
                 .verifyComplete();
 
         // nothing should be changed if we import the same file second time
@@ -54,8 +54,8 @@ public class ImportTest {
                 .verifyComplete();
 
         StepVerifier
-                .create(goodsService.findAll("", 0, 100, "no", "asc"))
-                .assertNext(goodsPage -> assertEquals(3, goodsPage.getTotalElements()))
+                .create(goodsService.findAll("",  PageRequest.of(0, 100, Sort.unsorted())))
+                .expectNextCount(3)
                 .verifyComplete();
     }
 
@@ -75,8 +75,8 @@ public class ImportTest {
                 .verify();
 
         StepVerifier
-                .create(goodsService.findAll("", 0, 100, "no", "asc"))
-                .assertNext(goodsPage -> assertEquals(1, goodsPage.getTotalElements()))
+                .create(goodsService.findAll("",  PageRequest.of(0, 100, Sort.unsorted())))
+                .expectNextCount(1)
                 .verifyComplete();
     }
 }

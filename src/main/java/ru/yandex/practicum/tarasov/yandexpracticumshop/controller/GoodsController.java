@@ -1,5 +1,9 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.controller;
 
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
 import org.springframework.http.codec.multipart.FilePart;
 import org.springframework.stereotype.Controller;
@@ -7,8 +11,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
+import java.util.List;
 import java.util.Optional;
 
 @Controller
@@ -30,12 +36,17 @@ public class GoodsController {
                               @RequestParam("pageSize") Optional<Integer> size,
                               @RequestParam("sort") Optional<String> sort,
                               @RequestParam(value = "search", required = false) String search) {
-        return goodsService.findAll(search, page.orElse(0), size.orElse(10), sort.orElse("no"), "ASC")
-                        .map(goods -> {
-                            model.addAttribute("paging", goods);
-                            return "main";
-                        }
-        );
+
+
+        Pageable pageable = PageRequest.of(page.orElse(0),  size.orElse(10), sort.map(Sort::by).orElseGet(Sort::unsorted));
+
+        Mono<List<ItemDTO>> items = goodsService.findAll(search,pageable).collectList();
+        Mono<Integer> itemsCount = goodsService.count(search);
+        return Mono.zip(items, itemsCount)
+                .map(tuple2 -> {
+                    model.addAttribute("paging", new PageImpl<>(tuple2.getT1(), pageable, tuple2.getT2()));
+                    return "main";
+                });
     }
 
     @PostMapping(value ="/main/items/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)
