@@ -16,12 +16,15 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.*;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
+
+import static ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages.NO_GOODS;
 
 @Service
 public class GoodsService {
@@ -57,7 +60,7 @@ public class GoodsService {
 
     public Mono<Goods> findById(long id) {
         return goodsRepository.findById(id)
-                .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id)));
+                .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + id)));
     }
 
     @Cacheable (
@@ -68,7 +71,7 @@ public class GoodsService {
         return orderService.getCartDTO()
                 .flatMap(cart ->
                     goodsRepository.findDTOById(id, cart.id())
-                    .switchIfEmpty(Mono.error(new NoSuchElementException("No goods found with id: " + id))));
+                    .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + id))));
     }
 
     @Transactional
@@ -90,7 +93,7 @@ public class GoodsService {
                                 if (action.equals("plus")) {
                                     return Mono.just(new OrderGoods(cart, goods, 0));
                                 } else {
-                                    return Mono.error(new NoSuchElementException("No goods found with id: " + goodsId));
+                                    return Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + goodsId));
                                 }
                             }))
                             .flatMap(
@@ -157,7 +160,7 @@ public class GoodsService {
     private Mono<Void> addRemoveGoods(OrderGoods orderGoods, int amount, int goodsQuantity) {
         int quantityInCart = orderGoods.getQuantity();
         if(quantityInCart + amount > goodsQuantity) {
-            throw new NoSuchElementException("Not enough goods in store");
+            throw new NoSuchElementException(ErrorMessages.NO_GOODS.getMessage());
         }
         if(quantityInCart + amount == 0) {
             return orderGoodsRepository.delete(orderGoods).then();
