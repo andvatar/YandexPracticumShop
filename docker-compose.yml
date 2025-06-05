@@ -1,9 +1,8 @@
-version: "3.8"
 services:
-  app:
+  shopApp:
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: YandexPracticumShopApp/Dockerfile
     image: yandex-shop-app
     restart: always
     ports:
@@ -12,10 +11,24 @@ services:
       - ./yandexShopApp/images:/yandexShopApp/images
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://yandex_shop_db:5432/yandex_shop
+      SPRING_R2DBC_URL: r2dbc:postgresql://yandex_shop_db/yandex_shop
       SPRING_DATASOURCE_USERNAME: postgres
       SPRING_DATASOURCE_PASSWORD: postgres
+      SPRING_REDIS_HOST: yandex_shop_redis
+      PAYMENT_SERVICE_URL: paymentApp
     depends_on:
       - db
+      - redis
+  paymentApp:
+    build:
+      context: .
+      dockerfile: YandexPracticumPaymentsApp/Dockerfile
+    image: yandex-payment-app
+    restart: always
+    ports:
+      - "8082:8082"
+    environment:
+      PAYMENT_SERVICE_URL: paymentApp
   db:
     image: postgres
     volumes:
@@ -27,3 +40,10 @@ services:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_DB=yandex_shop
+  redis:
+    image: redis
+    volumes:
+      - ./data/redis:/data
+    ports:
+      - "6380:6379"
+    container_name: yandex_shop_redis

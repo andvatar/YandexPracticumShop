@@ -1,0 +1,76 @@
+openapi: 3.0.4
+servers:
+    - url: paymentApp:8082
+#    - url: localhost:8082
+
+info:
+    title: Payments API
+    description: Test API to emulate payments
+    version: 1.0.0
+
+paths:
+    /payment/balance/{id}:
+        parameters:
+            - $ref: "#/components/parameters/IdParam"
+        get:
+            summary: Returns balance
+            tags:
+                - payment
+            responses:
+                "200":
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: number
+    /payment/perform/{id}:
+        parameters:
+            - $ref: "#/components/parameters/IdParam"
+        put:
+            summary: Emulates payments
+            tags:
+                - payment
+            requestBody:
+                required: true
+                content:
+                    application/json:
+                        schema:
+                            type: number
+            responses:
+                "200":
+                    description: Payment done
+                    content:
+                        application/json:
+                            schema:
+                                type: string
+                "403":
+                    $ref: "#/components/responses/NoMoney"
+                "5XX":
+                    $ref: "#/components/responses/UnknownError"
+                    
+components:
+    parameters:
+        IdParam:
+            name: id
+            in: path
+            required: true
+            schema:
+                type: integer
+                minimum: 0
+            description: User id
+    responses:
+        NoMoney:
+            description: Not enough money on the account
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+        UnknownError:
+            description: Unexpected error
+            content:
+                application/json:
+                    schema:
+                        $ref: "#/components/schemas/Error"
+    schemas:
+        Error:
+            type: string
