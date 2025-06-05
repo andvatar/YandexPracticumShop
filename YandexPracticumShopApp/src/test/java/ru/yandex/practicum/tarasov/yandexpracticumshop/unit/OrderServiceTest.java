@@ -14,12 +14,14 @@ import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 
+import java.math.BigDecimal;
 import java.util.NoSuchElementException;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -73,11 +75,12 @@ public class OrderServiceTest {
 
         when(orderRepository.findCart()).thenReturn(Mono.just(order));
         when(orderGoodsRepository.findByOrderId(any())).thenReturn(Flux.empty());
+        when(orderRepository.orderPrice(any())).thenReturn(Mono.just(BigDecimal.valueOf(0)));
 
         StepVerifier
                 .create(orderService.buyCart())
                 .expectErrorMatches(throwable ->
-                        throwable instanceof NoSuchElementException && throwable.getMessage().equals("The cart is empty"))
+                        throwable instanceof NoSuchElementException && throwable.getMessage().equals(ErrorMessages.EMPTY_CART.getMessage()))
                 .verify();
 
         verify(goodsRepository, times(0)).save(any(Goods.class));
@@ -91,11 +94,12 @@ public class OrderServiceTest {
         when(orderRepository.findCart()).thenReturn(Mono.just(order));
         when(orderGoodsRepository.findByOrderId(any())).thenReturn(Flux.just(orderGoods));
         when(goodsRepository.findById(anyLong())).thenReturn(Mono.just(goods));
+        when(orderRepository.orderPrice(any())).thenReturn(Mono.just(BigDecimal.valueOf(1000)));
 
         StepVerifier
                 .create(orderService.buyCart())
                 .expectErrorMatches(throwable ->
-                        throwable instanceof NoSuchElementException && throwable.getMessage().equals("Not enough goods in the store: Test"))
+                        throwable instanceof NoSuchElementException && throwable.getMessage().equals(ErrorMessages.NO_GOODS_WITH_TITLE.getMessage() + "Test"))
                 .verify();
 
         verify(goodsRepository, times(0)).save(any(Goods.class));

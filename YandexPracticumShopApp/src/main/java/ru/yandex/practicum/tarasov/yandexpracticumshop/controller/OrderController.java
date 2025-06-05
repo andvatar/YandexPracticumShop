@@ -13,15 +13,16 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 @Controller
 public class OrderController {
     private final OrderService orderService;
+    private final PaymentApi api;
 
     public OrderController(OrderService orderService) {
         this.orderService = orderService;
+        this.api = new PaymentApi();
     }
 
 
     @RequestMapping("/cart/items")
     public Mono<String> getCart(Model model) {
-        PaymentApi api = new PaymentApi();
 
         return Mono.zip(orderService.getCartDTO(), api.paymentBalanceIdGet(1))
                         .map(tuple2 -> {

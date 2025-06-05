@@ -13,6 +13,7 @@ import reactor.test.StepVerifier;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepository;
@@ -73,7 +74,7 @@ public class GoodsServiceTest {
         StepVerifier
                 .create(goodsService.addRemoveToCart(1L, "plus"))
                 .expectErrorMatches(throwable ->
-                    throwable instanceof NoSuchElementException && throwable.getMessage().equals("Not enough goods in store")
+                    throwable instanceof NoSuchElementException && throwable.getMessage().equals(ErrorMessages.NO_GOODS.getMessage())
                 )
                 .verify();
     }

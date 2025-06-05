@@ -20,6 +20,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final GoodsRepository goodsRepository;
     private final OrderGoodsRepository orderGoodsRepository;
+    private final PaymentApi paymentApi;
 
     public OrderService(OrderRepository orderRepository,
                         GoodsRepository goodsRepository,
@@ -28,7 +29,7 @@ public class OrderService {
         this.orderRepository = orderRepository;
         this.goodsRepository = goodsRepository;
         this.orderGoodsRepository = orderGoodsRepository;
-
+        paymentApi = new PaymentApi();
     }
 
     public Mono<OrderDTO> getOrderDTO(long id) {
@@ -70,7 +71,6 @@ public class OrderService {
 
     @Transactional
     public Mono<Long> buyCart() {
-        PaymentApi paymentApi = new PaymentApi();
         return getCartWithItems()
                 .flatMap(order -> Flux.fromIterable(order.getGoods())
                         .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.EMPTY_CART.getMessage())))
