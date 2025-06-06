@@ -6,11 +6,13 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.api.PaymentApi;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.OrderGoods;
@@ -42,6 +44,9 @@ public class OrderServiceTest {
 
     @MockitoBean
     private OrderGoodsRepository orderGoodsRepository;
+
+    @MockitoBean
+    private PaymentApi paymentApi;
 
     private Order order;
     private Goods goods;
@@ -107,13 +112,14 @@ public class OrderServiceTest {
     }
 
     @Test
-    @Disabled
     public void buyCart() {
         when(orderRepository.findCart()).thenReturn(Mono.just(order));
         when(orderGoodsRepository.findByOrderId(any())).thenReturn(Flux.just(orderGoods));
         when(goodsRepository.findById(anyLong())).thenReturn(Mono.just(goods));
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> Mono.just(i.getArguments()[0]));
         when(goodsRepository.save(any(Goods.class))).thenAnswer(i -> Mono.just(i.getArguments()[0]));
+        when(orderRepository.orderPrice(any())).thenReturn(Mono.just(BigDecimal.valueOf(1000)));
+        when(paymentApi.paymentPerformIdPutWithHttpInfo(any(), any())).thenReturn(Mono.just(ResponseEntity.ok().build()));
 
         StepVerifier
                 .create(orderService.buyCart())

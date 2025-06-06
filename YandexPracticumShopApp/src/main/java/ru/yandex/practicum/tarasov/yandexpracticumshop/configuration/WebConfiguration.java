@@ -11,7 +11,7 @@ import org.springframework.web.reactive.config.WebFluxConfigurer;
 @PropertySource("classpath:application.properties")
 public class WebConfiguration implements WebFluxConfigurer {
 
-    @Value("${spring.images.location}")
+    @Value("${custom.images.location}")
     private String imagesLocation;
 
     @Override

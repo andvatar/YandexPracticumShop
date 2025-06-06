@@ -1,11 +1,12 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 
-import api.PaymentApi;
+
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.api.PaymentApi;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Order;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
@@ -24,12 +25,13 @@ public class OrderService {
 
     public OrderService(OrderRepository orderRepository,
                         GoodsRepository goodsRepository,
-                        OrderGoodsRepository orderGoodsRepository)
+                        OrderGoodsRepository orderGoodsRepository,
+                        PaymentApi paymentApi)
                          {
         this.orderRepository = orderRepository;
         this.goodsRepository = goodsRepository;
         this.orderGoodsRepository = orderGoodsRepository;
-        paymentApi = new PaymentApi();
+        this.paymentApi = paymentApi;
     }
 
     public Mono<OrderDTO> getOrderDTO(long id) {

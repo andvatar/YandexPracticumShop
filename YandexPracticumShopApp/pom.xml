@@ -167,8 +167,9 @@
                         <configuration>
                             <inputSpec>${project.basedir}/src/main/resources/payment_API.yml</inputSpec>
                             <generatorName>java</generatorName>
-                            <apiPackage>api</apiPackage>
-                            <modelPackage>model</modelPackage>
+                            <apiPackage>ru.yandex.practicum.tarasov.yandexpracticumshop.api</apiPackage>
+                            <modelPackage>ru.yandex.practicum.tarasov.yandexpracticumshop.model</modelPackage>
+                            <invokerPackage>ru.yandex.practicum.tarasov.yandexpracticumshop</invokerPackage>
                             <generateApiTests>false</generateApiTests>
                             <generateModelTests>false</generateModelTests>
                             <configOptions>

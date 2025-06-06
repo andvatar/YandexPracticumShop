@@ -8,7 +8,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - ./yandexShopApp/images:/yandexShopApp/images
+      - C:/yandexShopApp/images:/yandexShopApp/images
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://yandex_shop_db:5432/yandex_shop
       SPRING_R2DBC_URL: r2dbc:postgresql://yandex_shop_db/yandex_shop
@@ -16,6 +16,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: postgres
       SPRING_REDIS_HOST: yandex_shop_redis
       PAYMENT_SERVICE_URL: paymentApp
+      HOST_IMAGES_PATH: ./yandexShopApp/images
     depends_on:
       - db
       - redis

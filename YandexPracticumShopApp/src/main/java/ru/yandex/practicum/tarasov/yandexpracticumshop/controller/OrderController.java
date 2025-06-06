@@ -1,6 +1,5 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.controller;
 
-import api.PaymentApi;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -8,6 +7,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.api.PaymentApi;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 
 @Controller
@@ -15,9 +15,10 @@ public class OrderController {
     private final OrderService orderService;
     private final PaymentApi api;
 
-    public OrderController(OrderService orderService) {
+    public OrderController(OrderService orderService,
+                           PaymentApi api) {
         this.orderService = orderService;
-        this.api = new PaymentApi();
+        this.api = api;
     }
 
 
