@@ -1,7 +1,7 @@
 openapi: 3.0.4
 servers:
-    - url: paymentApp:8082
-#    - url: localhost:8082
+#    - url: paymentApp:8082
+    - url: localhost:8082
 
 info:
     title: Payments API

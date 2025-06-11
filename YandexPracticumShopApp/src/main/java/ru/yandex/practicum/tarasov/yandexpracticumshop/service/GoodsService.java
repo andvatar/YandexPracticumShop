@@ -14,7 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDto;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.*;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.GoodsRepository;
@@ -23,8 +23,6 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.repository.OrderGoodsRepo
 import java.io.IOException;
 import java.util.List;
 import java.util.NoSuchElementException;
-
-import static ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages.NO_GOODS;
 
 @Service
 public class GoodsService {
@@ -46,9 +44,10 @@ public class GoodsService {
     @Cacheable(
             value = "items"
     )
-    public Flux<ItemDTO> findAll(String search, Pageable pageable) {
+    public Flux<ItemDto> findAll(String search, Pageable pageable) {
         return orderService.getCartDTO()
-                .flatMapMany(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable));
+                .flatMapMany(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable))
+                .switchIfEmpty(Flux.defer(() -> goodsRepository.findAllDTOByTitle(search, -1L, pageable)));
     }
 
     @Cacheable(
@@ -67,11 +66,12 @@ public class GoodsService {
             value = "item",
             key = "#id"
     )
-    public Mono<ItemDTO> findDTOById(long id) {
+    public Mono<ItemDto> findDTOById(long id) {
         return orderService.getCartDTO()
                 .flatMap(cart ->
                     goodsRepository.findDTOById(id, cart.id())
-                    .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + id))));
+                    .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + id))))
+                .switchIfEmpty(Mono.defer(() -> goodsRepository.findDTOById(id, -1L)));
     }
 
     @Transactional

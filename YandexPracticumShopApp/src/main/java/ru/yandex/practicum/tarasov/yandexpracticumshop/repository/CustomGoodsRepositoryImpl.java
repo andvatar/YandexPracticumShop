@@ -5,7 +5,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.r2dbc.core.DatabaseClient;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDto;
 
 import java.math.BigDecimal;
 
@@ -19,7 +19,7 @@ public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
     }
 
     @Override
-    public Flux<ItemDTO> findAllDTOByTitle(String search, long orderId, Pageable pageable) {
+    public Flux<ItemDto> findAllDTOByTitle(String search, long orderId, Pageable pageable) {
         StringBuilder sql = getSql(pageable);
 
         return dbClient.sql(sql.toString())
@@ -27,7 +27,7 @@ public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
                 .bind("search", search == null ? "" : "%" + search + "%")
                 .bind("size", pageable.getPageSize())
                 .bind("offset", pageable.getOffset())
-                .map((row, metadata) -> new ItemDTO(
+                .map((row, metadata) -> new ItemDto(
                         row.get("id", Long.class),
                         row.get("title", String.class),
                         row.get("description", String.class),

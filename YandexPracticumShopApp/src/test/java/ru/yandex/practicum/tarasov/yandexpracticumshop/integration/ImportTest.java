@@ -9,6 +9,7 @@ import org.springframework.core.io.buffer.DefaultDataBufferFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.TestPropertySource;
 import reactor.core.publisher.Flux;
@@ -29,6 +30,7 @@ public class ImportTest {
     private GoodsService goodsService;
 
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     public void importTest() {
         String csv = """
                 title,description,img_path,quantity,price_amount
@@ -62,6 +64,7 @@ public class ImportTest {
     }
 
     @Test
+    @WithMockUser(username = "admin", roles = {"ADMIN"})
     public void importEmptyFileTest() {
         String csv = "title,description,img_path,quantity,price_amount";
 

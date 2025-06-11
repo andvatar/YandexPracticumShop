@@ -95,7 +95,68 @@ databaseChangeLog:
                   constraints:
                     nullable: false
                     primaryKey: true
-
-
-
-
+        - tagDatabase:
+            tag: v.2.0
+  - changeSet:
+      id: 3
+      author: Andrey Tarasov
+      changes:
+        - createTable:
+            tableName: users
+            columns:
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    primaryKey: true
+                    nullable: false
+              - column:
+                  name: password
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+        - createTable:
+            tableName: authorities
+            columns:
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+                    foreignKeyName: fk_authorities_users
+                    references: users(username)
+              - column:
+                  name: authority
+                  type: varchar(50)
+                  constraints:
+                    nullable: false
+        - createIndex:
+            tableName: authorities
+            indexName: ix_auth_username
+            unique: true
+            columns:
+              - column:
+                  name: username
+              - column:
+                  name: authority
+        - addColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: username
+                  type: varchar(50)
+                  constraints:
+                    foreignKeyName: fk_orders_users
+                    references: users(username)
+        - tagDatabase:
+            tag: v.3.0
+      rollback:
+        - dropColumn:
+            tableName: orders
+            columns:
+              - column:
+                  name: username
+        - dropTable:
+            tableName: authorities
+        - dropTable:
+            tableName: users

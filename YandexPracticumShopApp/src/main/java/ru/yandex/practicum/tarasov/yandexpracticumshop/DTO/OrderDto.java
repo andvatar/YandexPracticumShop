@@ -7,14 +7,14 @@ import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.OrderStatus;
 import java.math.BigDecimal;
 import java.util.List;
 
-public record OrderDTO(
+public record OrderDto(
         @Id
         @Column("id")
         long id,
         @Column("status")
         OrderStatus status,
 
-        List<ItemDTO> items
+        List<ItemDto> items
 ) {
         public BigDecimal totalSum() {
                 return items()

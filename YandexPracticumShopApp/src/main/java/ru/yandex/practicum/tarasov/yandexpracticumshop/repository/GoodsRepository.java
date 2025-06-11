@@ -7,7 +7,7 @@ import org.springframework.data.repository.reactive.ReactiveCrudRepository;
 import org.springframework.stereotype.Repository;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDto;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.entity.Goods;
 
 @Repository
@@ -17,7 +17,7 @@ public interface GoodsRepository extends ReactiveCrudRepository<Goods, Long>, Cu
             from goods g
             left outer join order_goods og on g.id = og.goods_id and og.order_id = :order_id
             where g.id = :id""")
-    Mono<ItemDTO> findDTOById(@Param("id") Long id, @Param("order_id") long orderId);
+    Mono<ItemDto> findDTOById(@Param("id") Long id, @Param("order_id") Long orderId);
 
     @Cacheable(
             value = "itemsByOrder",
@@ -28,7 +28,7 @@ public interface GoodsRepository extends ReactiveCrudRepository<Goods, Long>, Cu
             from goods g
             join order_goods og on g.id = og.goods_id
             where og.order_id = :order_id""")
-    Flux<ItemDTO> findAllDTOByOrderId(@Param("order_id") long orderId);
+    Flux<ItemDto> findAllDTOByOrderId(@Param("order_id") long orderId);
 
     Mono<Goods> findByTitle(String title);
 

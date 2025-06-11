@@ -1,12 +1,17 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.integration;
 
+import org.checkerframework.checker.units.qual.A;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -34,6 +39,14 @@ public class GoodsControllerTest {
     @Autowired
     private OrderService orderService;
 
+    @Autowired
+    private CacheManager cacheManager;
+
+    @BeforeEach
+    void clearCache() {
+        cacheManager.getCacheNames().forEach(cacheName -> cacheManager.getCache(cacheName).clear());
+    }
+
     @Test
     void getAllGoods() {
         webTestClient.get()
@@ -44,6 +57,7 @@ public class GoodsControllerTest {
     }
 
     @Test
+    @WithMockUser(username = "user")
     void addItemToCart() {
         Long id = goodsService.findAll(null, PageRequest.of(0, 100, Sort.unsorted()))
                         .blockFirst().id();

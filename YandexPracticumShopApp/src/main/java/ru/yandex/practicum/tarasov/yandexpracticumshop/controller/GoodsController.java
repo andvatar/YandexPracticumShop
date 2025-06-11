@@ -11,10 +11,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ServerWebExchange;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.ItemDto;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.enums.ErrorMessages;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.GoodsService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Controller
@@ -37,10 +39,9 @@ public class GoodsController {
                               @RequestParam("sort") Optional<String> sort,
                               @RequestParam(value = "search", required = false) String search) {
 
-
         Pageable pageable = PageRequest.of(page.orElse(0),  size.orElse(10), sort.map(Sort::by).orElseGet(Sort::unsorted));
 
-        Mono<List<ItemDTO>> items = goodsService.findAll(search,pageable).collectList();
+        Mono<List<ItemDto>> items = goodsService.findAll(search,pageable).collectList();
         Mono<Integer> itemsCount = goodsService.count(search);
         return Mono.zip(items, itemsCount)
                 .map(tuple2 -> {
@@ -73,7 +74,8 @@ public class GoodsController {
         return goodsService.findDTOById(id).map(goods -> {
             model.addAttribute("item", goods);
             return "item";
-        });
+        })
+        .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + id)));
     }
 
     @RequestMapping("/import")

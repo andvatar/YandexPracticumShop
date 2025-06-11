@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import reactor.core.publisher.Mono;
-import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDTO;
+import ru.yandex.practicum.tarasov.yandexpracticumshop.DTO.OrderDto;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.api.PaymentApi;
 import ru.yandex.practicum.tarasov.yandexpracticumshop.service.OrderService;
 
@@ -27,7 +27,7 @@ public class OrderController {
 
         return Mono.zip(orderService.getCartDTO(), api.paymentBalanceIdGet(1))
                         .map(tuple2 -> {
-                            OrderDTO order = tuple2.getT1();
+                            OrderDto order = tuple2.getT1();
                             model.addAttribute("items", order.items());
                             model.addAttribute("total", order.totalSum());
                             model.addAttribute("empty", order.items().isEmpty());

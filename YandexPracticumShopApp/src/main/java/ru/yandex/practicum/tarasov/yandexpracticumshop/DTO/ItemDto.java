@@ -7,7 +7,7 @@ import org.springframework.data.relational.core.mapping.Table;
 import java.math.BigDecimal;
 
 @Table("goods")
-public record ItemDTO(
+public record ItemDto(
         @Id
         @Column("id")
         Long id,

@@ -1,12 +1,12 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.unit;
 
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import reactor.core.publisher.Flux;
@@ -32,6 +32,7 @@ import static org.mockito.Mockito.*;
 
 @SpringBootTest(classes = OrderService.class)
 @ActiveProfiles("test")
+@WithMockUser("test")
 public class OrderServiceTest {
     @Autowired
     private OrderService orderService;
@@ -78,7 +79,7 @@ public class OrderServiceTest {
 
         order.getGoods().clear();
 
-        when(orderRepository.findCart()).thenReturn(Mono.just(order));
+        when(orderRepository.findCart(any())).thenReturn(Mono.just(order));
         when(orderGoodsRepository.findByOrderId(any())).thenReturn(Flux.empty());
         when(orderRepository.orderPrice(any())).thenReturn(Mono.just(BigDecimal.valueOf(0)));
 
@@ -96,7 +97,7 @@ public class OrderServiceTest {
     public void buyMoreGoodsThanWeHave() {
         orderGoods.setQuantity(15);
 
-        when(orderRepository.findCart()).thenReturn(Mono.just(order));
+        when(orderRepository.findCart(any())).thenReturn(Mono.just(order));
         when(orderGoodsRepository.findByOrderId(any())).thenReturn(Flux.just(orderGoods));
         when(goodsRepository.findById(anyLong())).thenReturn(Mono.just(goods));
         when(orderRepository.orderPrice(any())).thenReturn(Mono.just(BigDecimal.valueOf(1000)));
@@ -113,7 +114,7 @@ public class OrderServiceTest {
 
     @Test
     public void buyCart() {
-        when(orderRepository.findCart()).thenReturn(Mono.just(order));
+        when(orderRepository.findCart(any())).thenReturn(Mono.just(order));
         when(orderGoodsRepository.findByOrderId(any())).thenReturn(Flux.just(orderGoods));
         when(goodsRepository.findById(anyLong())).thenReturn(Mono.just(goods));
         when(orderRepository.save(any(Order.class))).thenAnswer(i -> Mono.just(i.getArguments()[0]));
