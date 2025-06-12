@@ -22,7 +22,6 @@ public class RedisCacheConfig {
 
     @Bean
     public RedisCacheConfiguration cacheConfiguration() {
-        System.out.println(cacheProperties.getRedis().getTimeToLive());
 
         return RedisCacheConfiguration
                 .defaultCacheConfig()

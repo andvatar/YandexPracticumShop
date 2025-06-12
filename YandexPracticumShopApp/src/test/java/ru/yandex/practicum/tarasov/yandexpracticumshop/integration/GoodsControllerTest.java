@@ -1,8 +1,6 @@
 package ru.yandex.practicum.tarasov.yandexpracticumshop.integration;
 
-import org.checkerframework.checker.units.qual.A;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
@@ -57,7 +55,7 @@ public class GoodsControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "user")
+    @WithMockUser(username = "test_user")
     void addItemToCart() {
         Long id = goodsService.findAll(null, PageRequest.of(0, 100, Sort.unsorted()))
                         .blockFirst().id();

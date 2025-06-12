@@ -29,11 +29,15 @@ public class Order {
     @Column("status")
     private OrderStatus status;
 
+    @Column("username")
+    private String username;
+
     @Transient
     private List<OrderGoods> goods = new ArrayList<>();
 
-    public Order(OrderStatus status) {
+    public Order(OrderStatus status, String username) {
         this.status = status;
+        this.username = username;
     }
 
     public List<Goods> items() {

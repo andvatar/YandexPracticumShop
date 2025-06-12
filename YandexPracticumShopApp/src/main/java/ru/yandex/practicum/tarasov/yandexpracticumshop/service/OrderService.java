@@ -2,9 +2,7 @@ package ru.yandex.practicum.tarasov.yandexpracticumshop.service;
 
 
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.ReactiveSecurityContextHolder;
-import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import reactor.core.publisher.Flux;
@@ -45,29 +43,28 @@ public class OrderService {
                 .flatMap(this::orderToDTO);
     }
 
+    @PreAuthorize("isAuthenticated()")
     public Mono<OrderDto> getCartDTO() {
-        return isAuthenticated().flatMap(a -> {
-            if(a) {
-                return getUsername().flatMap(orderRepository::findCart)
-                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))))
+        return getUsername().flatMap(orderRepository::findCart)
+                .switchIfEmpty(Mono.defer(() ->
+                        getUsername().flatMap(
+                                username -> orderRepository.save(new Order(OrderStatus.NEW, username)))))
                 .flatMap(this::orderToDTO);
-            }
-            else {
-                return Mono.empty();
-            }
-        });
     }
 
     @PreAuthorize("isAuthenticated()")
     public Mono<Order> getCart() {
         return getUsername().flatMap(orderRepository::findCart)
-                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))));
+                .switchIfEmpty(Mono.defer(() -> getUsername().flatMap(username -> orderRepository.save(new Order(OrderStatus.NEW, username)))));
     }
 
     @PreAuthorize("isAuthenticated()")
     public Mono<Order> getCartWithItems() {
         return getUsername().flatMap(orderRepository::findCart)
-                .switchIfEmpty(Mono.defer(() -> orderRepository.save(new Order(OrderStatus.NEW))))
+                .switchIfEmpty(Mono.defer(() ->
+                    getUsername().flatMap(username ->
+                        orderRepository.save(new Order(OrderStatus.NEW, username)))
+                ))
                 .flatMap(cart -> orderGoodsRepository.findByOrderId(cart.getId())
                         .collectList()
                         .map(og -> {
@@ -119,16 +116,8 @@ public class OrderService {
     private Mono<OrderDto> orderToDTO(Order order) {
         return goodsRepository.findAllDTOByOrderId(order.getId())
                 .collectList()
-                .map(items ->
-                        new OrderDto(order.getId(), order.getStatus(), items)
+                .map(items -> new OrderDto(order.getId(), order.getStatus(), items)
                 );
-    }
-
-    private Mono<Boolean> isAuthenticated() {
-        return ReactiveSecurityContextHolder.getContext()
-                .map(SecurityContext::getAuthentication)
-                .map(Authentication::isAuthenticated)
-                .defaultIfEmpty(false);
     }
 
     private Mono<String> getUsername() {

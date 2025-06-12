@@ -112,7 +112,12 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: password
-                  type: varchar(50)
+                  type: varchar(100)
+                  constraints:
+                    nullable: false
+              - column:
+                  name: enabled
+                  type: boolean
                   constraints:
                     nullable: false
         - createTable:

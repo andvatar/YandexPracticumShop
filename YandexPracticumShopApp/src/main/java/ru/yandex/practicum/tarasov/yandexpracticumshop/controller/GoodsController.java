@@ -43,11 +43,12 @@ public class GoodsController {
 
         Mono<List<ItemDto>> items = goodsService.findAll(search,pageable).collectList();
         Mono<Integer> itemsCount = goodsService.count(search);
+
         return Mono.zip(items, itemsCount)
                 .map(tuple2 -> {
                     model.addAttribute("paging", new PageImpl<>(tuple2.getT1(), pageable, tuple2.getT2()));
                     return "main";
-                });
+               });
     }
 
     @PostMapping(value ="/main/items/{id}", consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE)

@@ -9,6 +9,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.core.io.buffer.DataBufferUtils;
 import org.springframework.data.domain.*;
 import org.springframework.http.codec.multipart.FilePart;
+import org.springframework.security.authorization.AuthorizationDeniedException;
 import org.springframework.stereotype.Service;
 
 import org.springframework.transaction.annotation.Transactional;
@@ -41,11 +42,15 @@ public class GoodsService {
         this.cacheManager = cacheManager;
     }
 
-    @Cacheable(
-            value = "items"
-    )
     public Flux<ItemDto> findAll(String search, Pageable pageable) {
         return orderService.getCartDTO()
+                .onErrorResume(throwable -> {
+                    if (throwable instanceof AuthorizationDeniedException) {
+                        return Mono.empty();
+                    } else {
+                        return Mono.error(throwable);
+                    }
+                })
                 .flatMapMany(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable))
                 .switchIfEmpty(Flux.defer(() -> goodsRepository.findAllDTOByTitle(search, -1L, pageable)));
     }
