@@ -8,7 +8,7 @@ services:
     ports:
       - "8080:8080"
     volumes:
-      - C:/yandexShopApp/images:/yandexShopApp/images
+      - /yandexShopApp/images:/yandexShopApp/images
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://yandex_shop_db:5432/yandex_shop
       SPRING_R2DBC_URL: r2dbc:postgresql://yandex_shop_db/yandex_shop

@@ -22,8 +22,6 @@ public class CustomGoodsRepositoryImpl implements CustomGoodsRepository {
     public Flux<ItemDto> findAllDTOByTitle(String search, long orderId, Pageable pageable) {
         StringBuilder sql = getSql(pageable);
 
-        System.out.println("order id = " + orderId);
-
         return dbClient.sql(sql.toString())
                 .bind("order_id", orderId)
                 .bind("search", search == null ? "" : "%" + search + "%")

@@ -15,7 +15,7 @@ import java.util.List;
 @EnableWebFluxSecurity
 public class SecurityConfiguration {
     @Bean
-    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity security) throws Exception {
+    public SecurityWebFilterChain securityFilterChain(ServerHttpSecurity security) {
         return security
                 .authorizeExchange(requests -> requests
                         .anyExchange().authenticated()
