@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8"> <title>Витрина товаров</title>
@@ -71,10 +71,10 @@
                     <tr>
                         <td>
                             <form th:action="${'/main/items/'+item.id()}" method="post">
-                                <button name="action" value="minus">-</button>
-                                <span th:text="${item.count()}"></span>
-                                <button name="action" value="plus">+</button>
-                                <button name="action" value="plus" th:if="${item.count()==0}" style="float:right;">В корзину</button>
+                                <button name="action" value="minus" sec:authorize="isAuthenticated()">-</button>
+                                <span th:text="${item.count()}" sec:authorize="isAuthenticated()"></span>
+                                <button name="action" value="plus" sec:authorize="isAuthenticated()">+</button>
+                                <button name="action" value="plus" th:if="${item.count()==0}" style="float:right;" sec:authorize="isAuthenticated()">В корзину</button>
                             </form>
                         </td>
                     </tr>

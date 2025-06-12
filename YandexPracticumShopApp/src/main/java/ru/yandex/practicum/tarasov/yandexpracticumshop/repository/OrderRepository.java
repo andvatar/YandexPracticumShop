@@ -12,11 +12,11 @@ import java.math.BigDecimal;
 
 @Repository
 public interface OrderRepository extends ReactiveCrudRepository<Order, Long> {
-    @Query("select id, status from orders where status = 'NEW' and username = :username")
+    @Query("select id, status, username from orders where status = 'NEW' and username = :username")
     Mono<Order> findCart(@Param("username") String username);
-    @Query("select id, status from orders where id = :id")
+    @Query("select id, status, username from orders where id = :id")
     Mono<Order> findById(@Param("id") Long orderId);
-    @Query("select id, status from orders where status <> 'NEW' and username = :username")
+    @Query("select id, status, username from orders where status <> 'NEW' and username = :username")
     Flux<Order> findOrders(@Param("username") String username);
 
     @Query("""

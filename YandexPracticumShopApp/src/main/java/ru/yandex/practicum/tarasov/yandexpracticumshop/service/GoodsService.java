@@ -44,13 +44,7 @@ public class GoodsService {
 
     public Flux<ItemDto> findAll(String search, Pageable pageable) {
         return orderService.getCartDTO()
-                .onErrorResume(throwable -> {
-                    if (throwable instanceof AuthorizationDeniedException) {
-                        return Mono.empty();
-                    } else {
-                        return Mono.error(throwable);
-                    }
-                })
+                .onErrorResume(e -> e instanceof AuthorizationDeniedException ? Mono.empty() : Mono.error(e))
                 .flatMapMany(cart -> goodsRepository.findAllDTOByTitle(search, cart.id(), pageable))
                 .switchIfEmpty(Flux.defer(() -> goodsRepository.findAllDTOByTitle(search, -1L, pageable)));
     }
@@ -73,6 +67,7 @@ public class GoodsService {
     )
     public Mono<ItemDto> findDTOById(long id) {
         return orderService.getCartDTO()
+                .onErrorResume(e -> e instanceof AuthorizationDeniedException ? Mono.empty() : Mono.error(e))
                 .flatMap(cart ->
                     goodsRepository.findDTOById(id, cart.id())
                     .switchIfEmpty(Mono.error(new NoSuchElementException(ErrorMessages.ITEM_NOT_FOUND.getMessage() + id))))

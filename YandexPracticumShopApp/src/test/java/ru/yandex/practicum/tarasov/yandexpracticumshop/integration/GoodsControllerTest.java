@@ -9,6 +9,7 @@ import org.springframework.cache.CacheManager;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.MediaType;
+import org.springframework.security.test.context.support.WithAnonymousUser;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.reactive.server.WebTestClient;
@@ -75,5 +76,31 @@ public class GoodsControllerTest {
         assertNotNull(orderGoodsList);
         assertEquals(id, orderGoodsList.getFirst().getGoodsId());
         assertEquals(1, orderGoodsList.getFirst().getQuantity());
+    }
+
+    @Test
+    @WithAnonymousUser
+    void anonymousAllGoods() {
+        webTestClient.get()
+                .uri("/main/items")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(String.class);
+    }
+
+    @Test
+    @WithAnonymousUser
+    void anonymousAddItemToCart() {
+        Long id = goodsService.findAll(null, PageRequest.of(0, 100, Sort.unsorted()))
+                .blockFirst().id();
+
+        webTestClient.post()
+                .uri("/main/items/{id}", id)
+                .contentType(MediaType.APPLICATION_FORM_URLENCODED)
+                .body(BodyInserters.fromFormData("action", "plus"))
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody(String.class)
+                .isEqualTo("Access Denied");
     }
 }

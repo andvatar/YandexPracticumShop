@@ -25,9 +25,13 @@ public class SecurityConfiguration {
                             ReactiveJwtAuthenticationConverter jwtAuthenticationConverter = new ReactiveJwtAuthenticationConverter();
                             jwtAuthenticationConverter.setJwtGrantedAuthoritiesConverter(jwt -> {
                                 List<String> roles = jwt.getClaim("roles");
-
-                                return Flux.fromIterable(roles)
-                                        .map(SimpleGrantedAuthority::new);
+                                if (roles == null) {
+                                    return Flux.just(new SimpleGrantedAuthority("ROLE_USER"));
+                                }
+                                else {
+                                    return Flux.fromIterable(roles)
+                                            .map(SimpleGrantedAuthority::new);
+                                }
                             });
 
                             jwtSpec.jwtAuthenticationConverter(jwtAuthenticationConverter);
