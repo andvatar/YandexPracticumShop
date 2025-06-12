@@ -26,8 +26,6 @@ public class CustomUserRepositoryImpl implements CustomUserRepository {
     @Override
     public Mono<UserDto> createUser(UserDto userDto) {
 
-        String test = passwordEncoder.encode(userDto.getPassword());
-
         return dbClient.sql("insert into users (username, password, enabled) values (:username, :password, :enabled)")
                 .bind("username", userDto.getUsername())
                 .bind("password", passwordEncoder.encode(userDto.getPassword()))
